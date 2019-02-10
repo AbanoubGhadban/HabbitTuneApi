@@ -1,0 +1,18 @@
+{
+    "app": {
+        "name": "Habbit Tune",
+        "url": "https://habbittune.com"
+    },
+
+    "server": {
+        "port": 3000
+    },
+
+    "db": {
+        "name": "habbit-tune",
+        "port": 3306,
+        "host": "localhost",
+        "user": "root",
+        "password": ""
+    }
+}

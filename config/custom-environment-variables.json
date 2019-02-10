@@ -1,0 +1,13 @@
+{
+    "server": {
+        "port": "HABBIT_TUNE_PORT"
+    },
+
+    "db": {
+        "name": "HABBIT_TUNE_PORT_DB",
+        "port": "HABBIT_TUNE_PORT_DB_PORT",
+        "host": "HABBIT_TUNE_PORT_DB_HOST",
+        "user": "HABBIT_TUNE_PORT_DB_USER",
+        "password": "HABBIT_TUNE_PORT_DB_PASS"
+    }
+}
