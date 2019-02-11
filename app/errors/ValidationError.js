@@ -28,6 +28,15 @@ class ValidationError extends ApiError {
         });
     }
 
+    static bothParentsExist(value) {
+        return new ValidationError({
+            message: "You can't add more parents to family, both parents exist",
+            type: types.BOTH_PARENTS_EXIST,
+            path: 'familyId',
+            value
+        });
+    }
+
     getResponse() {
         return {
             name: "ValidationError",

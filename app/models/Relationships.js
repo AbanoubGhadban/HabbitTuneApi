@@ -37,6 +37,7 @@ Child.hasMany(RefreshToken, {
 
 
 // Family Relationships
+Family.belongsToMany(User, {through: 'user_family'});
 Family.hasMany(Child, {
     foreignKey: {
         name: 'familyId',

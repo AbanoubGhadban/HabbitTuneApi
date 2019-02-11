@@ -11,11 +11,10 @@ const errTransformer = require('./app/middleware/errorTransform');
 const sequelize = require('./app/utils/database');
 require('./app/models/Relationships');
 
-const authRouter = require('./app/routes/auth');
-
 app.use(bodyParser.json());
 
-app.use('/auth', authRouter);
+app.use('/auth', require('./app/routes/auth'));
+app.use('/families', require('./app/routes/families'));
 
 app.use(errTransformer);
 app.use(errorMiddleware);
