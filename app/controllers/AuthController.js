@@ -30,7 +30,11 @@ module.exports = {
             const tokens = await createTokens(user, t);
             const code = await getActivationCode(user, t);
             await sendActivationCode(user, code.code);
-            res.send(tokens);
+            res.send({
+                // toJson is defined at User.js file to remove passord from response
+                ...user.toJson(),
+                tokens
+            });
         });
     },
 
@@ -51,7 +55,8 @@ module.exports = {
             group: 'normal'
         });
         await ActivationCode.destroy({where: {userId: user.id}});
-        res.send(user);
+        // toJson is defined at User.js file to remove passord from response
+        res.send(user.toJson());
     },
 
     sendActivationCode: async (req, res) => {
