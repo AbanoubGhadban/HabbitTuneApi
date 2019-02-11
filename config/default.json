@@ -14,5 +14,14 @@
         "host": "localhost",
         "user": "root",
         "password": ""
-    }
+    },
+
+    "token": {
+        "accessTokenTTL": 600,
+        "refreshTokenTTL": null 
+    },
+
+    "activationCodeTTL": 600,
+    "joinCodeTTL": 600,
+    "childLoginCodeTTL": 600
 }
