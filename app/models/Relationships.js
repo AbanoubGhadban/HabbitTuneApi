@@ -5,23 +5,53 @@ const RegistrationToken = require('./RegistrationToken');
 const ActivationCode = require('./ActivationCode');
 const JoinCode = require('./JoinCode');
 const ChildLoginCode = require('./ChildLoginCode');
+const RefreshToken = require('./RefreshToken');
 
 // Child Relationships
-Child.belongsTo(Family);
-Child.hasMany(ChildLoginCode);
+Child.hasMany(ChildLoginCode, {
+    foreignKey: {
+        name: 'childId',
+        allowNull: false
+    },
+    as: 'ChildLoginCodes',
+    onDelete: 'CASCADE'    
+});
+
 Child.hasMany(RegistrationToken, {
     constraints: false,
-    foreignKey: 'clientType',
+    foreignKey: 'clientId',
     scope: {
         clientType: 'child'
-    }
+    },
+    as: 'RegistrationTokens'
+});
+
+Child.hasMany(RefreshToken, {
+    constraints: false,
+    foreignKey: 'clientId',
+    scope: {
+        clientType: 'child'
+    },
+    as: 'RefreshTokens'
 });
 
 
 // Family Relationships
-Family.hasMany(Child);
-Family.hasMany(JoinCode);
-Family.belongsToMany(User, {through: 'user_family'});
+Family.hasMany(Child, {
+    foreignKey: {
+        name: 'familyId',
+        allowNull: false
+    },
+    onDelete: 'CASCADE'
+});
+Family.hasMany(JoinCode, {
+    foreignKey: {
+        name: 'familyId',
+        allowNull: false
+    },
+    as: 'JoinCodes',
+    onDelete: 'CASCADE'
+});
 
 
 // RegistrationToken Relationships
@@ -40,24 +70,29 @@ RegistrationToken.belongsTo(Child, {
 
 // User Relationships
 User.belongsToMany(Family, {through: 'user_family'});
-User.hasMany(ActivationCode);
+User.hasMany(ActivationCode, {
+    foreignKey: {
+        name: 'userId',
+        allowNull: false
+    },
+    as: 'ActivationCodes',
+    onDelete: 'CASCADE'
+});
 
 User.hasMany(RegistrationToken, {
     constraints: false,
     foreignKey: 'clientId',
     scope: {
         clientType: 'user'
-    }
+    },
+    as: 'RegistrationTokens'
 });
 
-
-// ActivationCode Relationships
-ActivationCode.belongsTo(User);
-
-
-// JoinCode Relationships
-JoinCode.belongsTo(Family);
-
-
-// ChildLoginCode Relationships
-ChildLoginCode.belongsTo(Child);
+User.hasMany(RefreshToken, {
+    constraints: false,
+    foreignKey: 'clientId',
+    scope: {
+        clientType: 'user'
+    },
+    as: 'RefreshTokens'
+})

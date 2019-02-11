@@ -9,7 +9,7 @@ const ActivationCode = sequelize.define('child_login_code', {
         type: Sequelize.STRING(100),
         primaryKey: true
     },
-    expIn: Sequelize.DATE
+    expAt: Sequelize.DATE
 }, {
     timestamps: false
 });

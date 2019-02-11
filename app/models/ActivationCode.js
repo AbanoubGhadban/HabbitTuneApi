@@ -9,7 +9,7 @@ const ActivationCode = sequelize.define('activation_code', {
         type: Sequelize.STRING(100),
         primaryKey: true
     },
-    expIn: Sequelize.DATE
+    expAt: Sequelize.DATE
 }, {
     timestamps: false
 });

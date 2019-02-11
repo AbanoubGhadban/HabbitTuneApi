@@ -6,14 +6,10 @@ const RefreshToken = sequelize.define('refresh_token', {
         type: Sequelize.STRING(100),
         primaryKey: true
     },
-    accessToken: {
-        type: Sequelize.STRING(100),
-        unique: true,
-        allowNull: false
-    },
+    clientType: Sequelize.STRING(10),
     expAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: true
     }
 }, {
     timestamps: false

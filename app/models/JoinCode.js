@@ -8,7 +8,7 @@ const JoinCode = sequelize.define('join_code', {
         type: Sequelize.STRING(100),
         primaryKey: true
     },
-    expIn: Sequelize.DATE
+    expAt: Sequelize.DATE
 }, {
     timestamps: false
 });
