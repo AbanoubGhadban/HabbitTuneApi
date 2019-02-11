@@ -16,7 +16,7 @@ const generateCode = async (user, len) => {
 
 // Generate activation code and add it to db
 // Return Object of ActivationCode model
-const getActivationCode = async(user) => {
+const getActivationCode = async(user, transaction) => {
     for (let i = 0;i < 1000;++i) {
         const code = await generateCode(user, 6);
         const codeObj = await ActivationCode.findOne({where: {code}});
@@ -26,14 +26,14 @@ const getActivationCode = async(user) => {
 
         // If code already exist but expired, delete it
         if (codeObj) {
-            await codeObj.destroy();
+            await codeObj.destroy({transaction});
         }
         const newCode = ActivationCode.build({
             'code': code,
             'expAt': timeAfter(activationCodeTTL),
             'userId': user.id
         });
-        await newCode.save();
+        await newCode.save({transaction});
         return newCode;
     }
     throw new Error('Failed to generate activation code');

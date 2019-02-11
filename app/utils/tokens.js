@@ -45,15 +45,15 @@ const createAccessToken = async (user) => {
     return signToken(data);
 }
 
-const createTokens = async (user) => {
+const createTokens = async (user, transaction) => {
     const accessToken = await(createAccessToken(user));
     const refreshToken = await(createRefreshToken(user));
 
     const tokenObj = await RefreshToken.create({
         'refreshToken': sha256(refreshToken),
         'expAt': getRefreshTokenExpDate()
-    });
-    await user.addRefreshToken(tokenObj);
+    }, {transaction});
+    await user.addRefreshToken(tokenObj, {transaction});
     
     return {
         accessToken,
@@ -61,7 +61,7 @@ const createTokens = async (user) => {
     };
 }
 
-const refreshAccessToken = async (refreshToken, user) => {
+const refreshAccessToken = async (refreshToken, user, transaction) => {
     const tokenObj = await RefreshToken.findOne({where: {
         refreshToken: sha256(refreshToken)
     }});
@@ -69,7 +69,7 @@ const refreshAccessToken = async (refreshToken, user) => {
     if (!tokenObj) {
         throw AuthenticationError.refreshTokenExpired();
     } else if (tokenObj.expAt && tokenObj.expAt <= (new Date())) {
-        await tokenObj.destroy();
+        await tokenObj.destroy({transaction});
         throw AuthenticationError.refreshTokenExpired();        
     }
     

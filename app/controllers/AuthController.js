@@ -6,6 +6,7 @@ const { timeAfter } = require('../utils/utils');
 
 const ActivationCode = require('../models/ActivationCode');
 const ValidationError = require('../errors/ValidationError');
+const sequelize = require('../utils/database');
 
 const {
     getActivationCode
@@ -20,15 +21,17 @@ const {
 
 module.exports = {
     register: async (req, res) => {
-        const neededProps = _.pick(req.body, ['name', 'phone', 'role']);
-        const salt = await bcrypt.genSalt(10);
-        neededProps.password = await bcrypt.hash(req.body.password, salt);
-        
-        const user = await User.create(neededProps);
-        const tokens = await createTokens(user);
-        const code = await getActivationCode(user);
-        await sendActivationCode(user, code.code);
-        res.send(tokens);
+        await sequelize.transaction(async (t) => {
+            const neededProps = _.pick(req.body, ['name', 'phone', 'role']);
+            const salt = await bcrypt.genSalt(10);
+            neededProps.password = await bcrypt.hash(req.body.password, salt);
+            
+            const user = await User.create(neededProps, {transaction: t});
+            const tokens = await createTokens(user, t);
+            const code = await getActivationCode(user, t);
+            await sendActivationCode(user, code.code);
+            res.send(tokens);
+        });
     },
 
     activate: async (req, res) => {
@@ -68,8 +71,10 @@ module.exports = {
             });
         }
 
-        const code = await getActivationCode(user);
-        await sendActivationCode(user, code.code);
+        await sequelize.transaction(async (t) => {
+            const code = await getActivationCode(user, t);
+            await sendActivationCode(user, code.code);
+        });
         res.send({
             status: "sent"
         });
