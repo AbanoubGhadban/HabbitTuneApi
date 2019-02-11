@@ -1,5 +1,6 @@
 //const ApiError = require('../errors/ApiError');
 const ValidationError = require('../errors/ValidationError');
+const AuthenticationError = require('../errors/AuthenticationError');
 const types = require('../errors/types');
 
 const handler = async (err, req, res, next) => {
@@ -28,6 +29,14 @@ const handler = async (err, req, res, next) => {
             meta: originalErr.context
         });
         throw error;
+    }
+
+    if (err.name === "JsonWebTokenError") {
+        throw AuthenticationError.invalidToken();
+    }
+
+    if (err.name === "TokenExpiredError") {
+        throw AuthenticationError.tokenExpired();
     }
 
     throw err;

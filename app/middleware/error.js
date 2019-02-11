@@ -5,6 +5,7 @@ const handler = (err, req, res, next) => {
         res.status(err.getStatusCode()).send(err.getResponse());
     else
         res.status(500).send(err);
+    console.log(err);
 }
 
 module.exports = handler;

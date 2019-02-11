@@ -1,4 +1,5 @@
 const ApiError = require('./ApiError');
+const types = require('./types');
 
 class ValidationError extends ApiError {
     constructor(err) {
@@ -7,6 +8,24 @@ class ValidationError extends ApiError {
         this.path = err.path;
         this.value = err.value;
         this.meta = err.meta;
+    }
+
+    static invalidActivationCode(value) {
+        return new ValidationError({
+            message: "Invalid Activation Code",
+            type: types.INVALID_ACTIVATION_CODE,
+            path: 'code',
+            value
+        });
+    }
+
+    static expiredActivationCode(value) {
+        return new ValidationError({
+            message: "Expired Activation Code",
+            type: types.EXPIRED_ACTIVATION_CODE,
+            path: 'code',
+            value
+        });
     }
 
     getResponse() {
