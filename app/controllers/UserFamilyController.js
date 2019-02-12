@@ -9,6 +9,16 @@ const sequelize = require('../utils/database');
 const _ = require('lodash');
 
 module.exports = {
+    index: async(req, res) => {
+        const userId = req.params.userId;
+        const user = await User.findOne({
+            where: {id: userId},
+            include: [{model: Family, through: {attributes: []}}]
+        });
+
+        res.send(user.toJson().families);
+    },
+
     store: async(req, res) => {
         const userId = req.params.userId;
 
