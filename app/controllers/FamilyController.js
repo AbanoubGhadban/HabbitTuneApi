@@ -1,5 +1,6 @@
 const Family = require('../models/Family');
 const User = require('../models/User');
+const Child = require('../models/Child');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const ForbiddenError = require('../errors/ForbiddenError');
@@ -32,22 +33,4 @@ module.exports = {
             family: familyObj.get()
         });
     },
-
-    store: async(req, res) => {
-        const user = await req.user();
-        const userObj = await User.findOne({
-            where: {id: user.id},
-            include: [{ model: Family }]
-        });
-
-        if (userObj.role === 'mother' && userObj.getFamilies().length !== 0) {
-            throw new ForbiddenError('MOTHER_ALREADY_BELONG_TO_FAMILY');
-        }
-
-        const family = await Family.create({
-            'name': req.body.name
-        });
-        await userObj.addFamilies(family);
-        res.send(family.get());
-    }
 }
