@@ -71,6 +71,9 @@ module.exports = {
         }
         
         await userObj.addFamily(family);
+        try {
+            await JoinCode.destroy({where: {familyId: family.id}});
+        } catch (err) {}
         res.send({
             message: "Joined Successfully"
         });
