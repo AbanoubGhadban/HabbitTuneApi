@@ -1,8 +1,10 @@
 const User = require('../models/User');
+const Family = require('../models/Family');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const config = require('config');
 const { timeAfter, isParent } = require('../utils/utils');
+const AuthenticationError = require('../errors/AuthenticationError');
 
 const ActivationCode = require('../models/ActivationCode');
 const RefreshToken = require('../models/RefreshToken');
@@ -37,6 +39,25 @@ module.exports = {
                 ...user.toJson(),
                 tokens
             });
+        });
+    },
+
+    login: async(req, res) => {
+        const phone = req.body.phone;
+        const password = req.body.password;
+
+        const user = await User.findOne({
+            where: {phone},
+            include: [{model: Family}]
+        });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            throw AuthenticationError.invalidCredentials();
+        }
+
+        const tokens = await createTokens(user);
+        res.send({
+            ...user.toJson({plain: true}),
+            tokens
         });
     },
 

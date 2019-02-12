@@ -139,7 +139,7 @@ module.exports = {
     normalOrAdmin: checkAuth(['admin', 'normal'], false),
     exceptPendings: checkAuth(['admin', 'normal'], true),
     allowAll: checkAuth(['admin', 'normal', 'pending'], true),
-    eventBlocked: checkAuth(['admin', 'normal', 'pending', 'blocked'], true),
+    evenBlocked: checkAuth(['admin', 'normal', 'pending', 'blocked'], true),
     checkRefreshToken,
     sameUserId,
     parentInFamily,

@@ -34,6 +34,10 @@ class AuthenticationError extends ApiError {
         return new AuthenticationError("Invalid Refresh Token", types.INVALID_REFRESH_TOKEN);
     }
 
+    static invalidCredentials() {
+        return new AuthenticationError("Invalid Credentials", types.INVALID_CREDENTIALS);
+    }
+
     getResponse() {
         return {
             name: "AuthenticationError",
