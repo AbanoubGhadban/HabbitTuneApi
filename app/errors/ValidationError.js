@@ -2,6 +2,10 @@ const ApiError = require('./ApiError');
 const types = require('./types');
 
 class ValidationError extends ApiError {
+    static from(path, value, type, message, meta) {
+        return new ValidationError({path, value, type, message, meta});
+    }
+
     constructor(err) {
         super(err.message, 422);
         this.type = err.type;

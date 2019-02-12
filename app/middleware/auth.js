@@ -75,7 +75,7 @@ const sameUserId = (allowAdmin = true, payload = 'params') => async (req, res, n
     if (allowAdmin && user.group === 'admin') {
         next();
     }
-
+    
     if (+req[payload].userId !== user.id) {
         console.log("A", req[payload], user.id);
         

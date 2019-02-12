@@ -7,7 +7,7 @@ const { timeAfter } = require('./utils');
 const activationCodeTTL = config.get('activationCodeTTL');
 const joinCodeTTL = config.get('joinCodeTTL');
 
-const generateCode = async (user, len) => {
+const generateCode = async (len) => {
     const possible = "abcdefghijklmnopqrstuvwxyz0123456789";
     let code = "";
     for (var i = 0; i < len;++i) {
@@ -21,7 +21,7 @@ const generateCode = async (user, len) => {
 // Return Object of ActivationCode model
 const getActivationCode = async(user, transaction) => {
     for (let i = 0;i < 1000;++i) {
-        const code = await generateCode(user, 6);
+        const code = await generateCode(6);
         const codeObj = await ActivationCode.findOne({where: {code}});
 
         if (codeObj && (codeObj.expAt > new Date()))
@@ -45,8 +45,18 @@ const getActivationCode = async(user, transaction) => {
 // Generate Joi code and add it to db
 // Return Object of JoinCode model
 const getJoinCode = async(family, transaction) => {
+    // If user generated code recentrly, return it
+    const allowanceTime = timeAfter(.25*joinCodeTTL);
+    const oldCode = await JoinCode.findOne({
+        where: {expAt: {$gt: allowanceTime}},
+        familyId: family.id
+    });
+    if (oldCode) {
+        return oldCode;
+    }
+
     for (let i = 0;i < 1000;++i) {
-        const code = await generateCode(user, 6);
+        const code = await generateCode(6);
         const codeObj = await JoinCode.findOne({where: {code}});
 
         if (codeObj && (codeObj.expAt > new Date()))
@@ -56,12 +66,10 @@ const getJoinCode = async(family, transaction) => {
         if (codeObj) {
             await codeObj.destroy({transaction});
         }
-        const newCode = ActivationCode.build({
+        const newCode = family.createJoinCode({
             'code': code,
-            'expAt': timeAfter(joinCodeTTL),
-            'familyId': family.id
+            'expAt': timeAfter(joinCodeTTL)
         });
-        await newCode.save({transaction});
         return newCode;
     }
     throw new Error('Failed to generate activation code');

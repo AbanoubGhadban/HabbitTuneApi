@@ -14,23 +14,22 @@ const {
 
 module.exports = {
     generateJoinCode: async (req, res) => {
-        const familyId = req.body.familyId;
+        const familyId = req.params.familyId;
         const familyObj = await Family.findOne({
             where: {id: familyId},
             attributes: {
-                include: [[sequelize.fn('COUNT', sequelize.col('Users.id'), 'usersCount')]]
+                include: [[sequelize.fn('COUNT', sequelize.col('users.id')), 'usersCount']]
             },
-            include: [{ model: User }]
+            include: [{ model: User, attributes: [] }]
         });
 
-        if (familyObj.usersCount > 1) {
+        if (familyObj.get('usersCount') > 1) {
             throw ValidationError.bothParentsExist();
         }
         const code = await getJoinCode(familyObj);
 
         res.send({
-            code,
-            family: familyObj.get()
+            ...code.get({plain: true})
         });
     },
 }
