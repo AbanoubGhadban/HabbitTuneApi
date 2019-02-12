@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const request = require('../requests/AuthRequest');
 
 router.post('/register', request.registration, AuthController.register);
+router.post('/logout', auth.eventBlocked, AuthController.logout);
 router.post('/refreshToken', auth.checkRefreshToken, AuthController.refreshToken);
 router.post('/activate', auth.onlyPendings, AuthController.activate);
 router.get('/activationCode', auth.onlyPendings, AuthController.sendActivationCode);

@@ -2,9 +2,11 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const config = require('config');
-const { timeAfter } = require('../utils/utils');
+const { timeAfter, isParent } = require('../utils/utils');
 
 const ActivationCode = require('../models/ActivationCode');
+const RefreshToken = require('../models/RefreshToken');
+const RegistrationToken = require('../models/RegistrationToken');
 const ValidationError = require('../errors/ValidationError');
 const sequelize = require('../utils/database');
 
@@ -88,5 +90,25 @@ module.exports = {
     refreshToken: async(req, res) => {
         const tokens = await refreshAccessToken(req.body.refreshToken, await req.user());
         res.send(tokens);
+    },
+
+    logout: async(req, res) => {
+        const user = await req.user();
+        const clientType = isParent(user)? 'user' : 'child';
+
+        await sequelize.transaction(async(t) => {
+            await RefreshToken.destroy({
+                where: {clientType, clientId: user.id},
+                transaction: t
+            });
+            await RegistrationToken.destroy({
+                where: {clientType, clientId: user.id},
+                transaction: t
+            });
+        })
+
+        res.send({
+            message: 'Logged Out'
+        });
     }
 }
