@@ -17,7 +17,7 @@
     },
 
     "token": {
-        "accessTokenTTL": 600,
+        "accessTokenTTL": 6000,
         "refreshTokenTTL": null 
     },
 
