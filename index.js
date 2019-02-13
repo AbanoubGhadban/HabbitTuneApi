@@ -15,6 +15,7 @@ app.use(bodyParser.json());
 
 app.use('/auth', require('./app/routes/auth'));
 app.use('/families', require('./app/routes/families'));
+app.use('/users', require('./app/routes/users'));
 app.use('/users', require('./app/routes/userFamilies'));
 
 app.use(errTransformer);

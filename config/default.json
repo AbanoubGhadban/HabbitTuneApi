@@ -16,6 +16,8 @@
         "password": ""
     },
 
+    "itemsPerPage": 10,
+
     "token": {
         "accessTokenTTL": 6000,
         "refreshTokenTTL": null 

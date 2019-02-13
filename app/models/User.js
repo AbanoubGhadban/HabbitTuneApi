@@ -27,10 +27,20 @@ const User = sequelize.define('user', {
     },
     group: {
         type: Sequelize.ENUM,
-        values: ['pending', 'normal', 'admin'],
+        values: ['blocked', 'pending', 'normal', 'admin'],
         defaultValue: 'pending'
     }
 });
+
+const getMethod = User.prototype.get;
+User.prototype.get = function(args) {
+    const get = getMethod.bind(this);
+    const values = get(args);
+    if (values && values.password) {
+        delete values.password;
+    }
+    return values;
+}
 
 User.prototype.toJson = function(args) {
     const values = this.get(args);

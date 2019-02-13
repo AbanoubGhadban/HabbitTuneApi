@@ -20,6 +20,8 @@ module.exports = {
     BOTH_PARENTS_EXIST: 'BOTH_PARENTS_EXIST',
     // When father try to join family already having father
     // Or mother try to join family already having mother
+    // Or updating role of user
     ROLE_ALREADY_EXISTS: 'ROLE_ALREADY_EXISTS',
-    MOTHER_ALREADY_BELONG_TO_FAMILY: 'MOTHER_ALREADY_BELONG_TO_FAMILY'
+    MOTHER_ALREADY_BELONG_TO_FAMILY: 'MOTHER_ALREADY_BELONG_TO_FAMILY',
+    USER_HAVING_MORE_THAN_ONE_FAMILY: 'USER_HAVING_MORE_THAN_ONE_FAMILY'
 };
