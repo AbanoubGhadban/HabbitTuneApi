@@ -1,13 +1,19 @@
-const Sequelize = require('sequelize');
+const mongoose = require('mongoose');
 const config = require('config');
 
-const sequelize = new Sequelize(
-    config.get('db.name'),
-    config.get('db.user'),
-    config.get('db.password'), {
-        dialect: 'mysql',
-        host: config.get('db.host')
-    }
-);
+const getConnectionString = () => {
+    const host = config.get('db.host');
+    const port = config.get('db.port');
+    const name = config.get('db.name');
+    const user = config.get('db.user');
+    const password = config.get('db.password');
 
-module.exports = sequelize;
+    const userString = user? (password? `${user}:${password}@` : `${user}@`) : '';
+    const hostString = port? `${host}:${port}` : host;
+    return `mongodb://${userString}${hostString}/${name}`;
+}
+
+mongoose.connect(getConnectionString())
+.then(() => console.log('Connected to mongodb'));
+
+module.exports = mongoose;

@@ -1,51 +1,60 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../utils/database');
+const mongoose = require('../utils/database');
+const RefreshToken = require('./RefreshToken');
+const RegistrationToken = require('./RegistrationToken');
 
-const User = sequelize.define('user', {
-    id: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        primaryKey: true,
-        autoIncrement: true
-    },
+const userSchema = new mongoose.Schema({
     name: {
-        type: Sequelize.STRING(255),
-        allowNull: false
+        type: String,
+        min: 2,
+        max: 255,
+        required: true
     },
     phone: {
-        type: Sequelize.STRING(100),
-        allowNull: false,
+        type: String,
+        min: 5,
+        max: 100,
+        required: true,
         unique: true
     },
     password: {
-        type: Sequelize.STRING(255),
-        allowNull: false
+        type: String,
+        max: 255,
+        required: true,
+        select: false
     },
     role: {
-        type: Sequelize.ENUM,
-        values: ['father', 'mother'],
-        allowNull: false
+        type: String,
+        enum: ['father', 'mother'],
+        required: true
     },
     group: {
-        type: Sequelize.ENUM,
-        values: ['blocked', 'pending', 'normal', 'admin'],
-        defaultValue: 'pending'
+        type: String,
+        enum: ['blocked', 'pending', 'normal', 'admin'],
+        default: 'pending',
+        required: true
+    },
+    activationCodes: {
+        type: [{
+            code: {
+                type: string,
+                index: true,
+                required: true
+            },
+            expAt: {
+                type: Date,
+                required: true
+            }
+        }],
+        select: false
+    },
+    registrationTokens: {
+        type: [RegistrationToken.schema],
+        select: false
+    },
+    refreshTokens: {
+        type: [RefreshToken.schema],
+        select: false
     }
 });
 
-const getMethod = User.prototype.get;
-User.prototype.get = function(args) {
-    const get = getMethod.bind(this);
-    const values = get(args);
-    if (values && values.password) {
-        delete values.password;
-    }
-    return values;
-}
-
-User.prototype.toJson = function(args) {
-    const values = this.get(args);
-    delete values.password;
-    return values;
-}
-
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);

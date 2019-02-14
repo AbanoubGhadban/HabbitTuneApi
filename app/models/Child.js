@@ -1,20 +1,42 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../utils/database');
+const mongoose = require('../utils/database');
+const RefreshToken = require('./RefreshToken');
+const RegistrationToken = require('./RegistrationToken');
+const LoginCode = require('./LoginCode');
 
-const Child = sequelize.define('child', {
+const childSchema = new mongoose.Schema({
     name: {
-        type: Sequelize.STRING(255),
-        allowNull: false
+        type: String,
+        min: 2,
+        max: 255,
+        required: true
+    },
+    family: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family'
     },
     role: {
-        type: Sequelize.ENUM,
-        values: ['son', 'daughter'],
-        allowNull: false
+        type: String,
+        enum: ['son', 'daughter'],
+        required: true
     },
     points: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        defaultValue: 0
+        type: Number,
+        required: true,
+        default: 0,
+        validate: {
+            validator: Number.isInteger,
+            message: '{VALUE} is not an integer value'
+        },
+        index: true
+    },
+    registrationTokens: {
+        type: [RegistrationToken.schema],
+        select: false
+    },
+    refreshTokens: {
+        type: [RefreshToken.schema],
+        select: false
     }
 });
 
-module.exports = Child;
+module.exports = mongoose.model('Child', childSchema);

@@ -1,28 +1,16 @@
-// Stores FCM (Firebase Cloud Messaging) tokens
+const mongoose = require('../utils/database');
 
-const Sequelize = require('sequelize');
-const sequelize = require('../utils/database');
-
-const RegistrationToken = sequelize.define('registration_token', {
+const registrationTokenSchema = new mongoose.Schema({
     token: {
-        type: Sequelize.STRING(255),
-        unique: true,
-        allowNull: false
+        type: String,
+        index: true,
+        required: true,
+        unique: true
     },
-    clientId: {
-        type: Sequelize.INTEGER.UNSIGNED,
-        allowNull: false
-    },
-    clientType: {
-        type: Sequelize.STRING(10),
-        allowNull: false
-    },
-    updatedAt: {
-        type: Sequelize.DATE,
-        allowNull: false
+    expAt: {
+        type: Date,
+        required: false
     }
-}, {
-    timestamps: false
 });
 
-module.exports = RegistrationToken;
+module.exports = mongoose.model('RegistrationToken', registrationTokenSchema);

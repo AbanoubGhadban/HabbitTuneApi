@@ -1,16 +1,44 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../utils/database');
+const mongoose = require('../utils/database');
+const Child = require('./Child');
+const JoinCode = require('./JoinCode');
 
-const Family = sequelize.define('family', {
+const familySchema = new mongoose.Schema({
     name: {
-        type: Sequelize.STRING(255),
-        allowNull: false
+        type: String,
+        min: 2,
+        max: 255,
+        required: true
     },
     status: {
-        type: Sequelize.ENUM,
-        values: ['active', 'blocked'],
-        defaultValue: 'active'
-    }
+        type: String,
+        enum: ['active', 'blocked'],
+        required: true,
+        default: 'active'
+    },
+    points: {
+        type: Number,
+        required: true,
+        default: 0,
+        validate: {
+            validator: Number.isInteger,
+            message: '{VALUE} is not an integer value'
+        }
+    },
+    father: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
+    mother: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
+    children: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Child'
+    }],
+    joinCodes: [JoinCode.schema]
 });
 
-module.exports = Family;
+module.exports = mongoose.model('Family', familySchema);

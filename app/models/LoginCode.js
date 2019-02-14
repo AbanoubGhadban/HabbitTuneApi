@@ -1,6 +1,6 @@
 const mongoose = require('../utils/database');
 
-const joinCodeSchema = new mongoose.Schema({
+const loginCodeSchema = new mongoose.Schema({
     code: {
         type: String,
         min: 4,
@@ -8,9 +8,9 @@ const joinCodeSchema = new mongoose.Schema({
         unique: true,
         index: true
     },
-    family: {
+    child: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Family'
+        ref: 'Child'
     },
     expAt: {
         type: Date,
@@ -18,4 +18,4 @@ const joinCodeSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('JoinCode', joinCodeSchema);
+module.exports = mongoose.model('LoginCode', loginCodeSchema);

@@ -1,18 +1,10 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../utils/database');
+const mongoose = require('../utils/database');
 
-const RefreshToken = sequelize.define('refresh_token', {
-    refreshToken: {
-        type: Sequelize.STRING(100),
-        primaryKey: true
-    },
-    clientType: Sequelize.STRING(10),
+const refreshTokenSchema = new mongoose.Schema({
     expAt: {
-        type: Sequelize.DATE,
-        allowNull: true
+        type: Date,
+        required: false
     }
-}, {
-    timestamps: false
 });
 
-module.exports = RefreshToken;
+module.exports = mongoose.model('RefreshToken', refreshTokenSchema);
