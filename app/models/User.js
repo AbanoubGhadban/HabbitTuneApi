@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
     },
     activationCodes: {
         type: [{
+            _id: false,
             code: {
                 type: String,
                 index: true,
