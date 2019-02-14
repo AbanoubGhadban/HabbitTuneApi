@@ -57,4 +57,16 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+userSchema.options.toJSON = {
+    transform: function (doc, ret, options) {
+        if (ret) {
+            delete ret.password;
+            delete ret.activationCodes;
+            delete ret.registrationTokens;
+            delete ret.refreshTokens;
+        }
+        return ret;
+    }
+}
+
 module.exports = mongoose.model('User', userSchema);

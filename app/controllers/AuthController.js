@@ -47,7 +47,7 @@ module.exports = {
 
         await sendActivationCode(user, code);
         res.send({
-            user,
+            user: user.toJSON(),
             tokens: await createTokensResponse(user, refreshToken)
         });
     },
@@ -71,7 +71,8 @@ module.exports = {
         });
 
         res.send({
-            user,
+            // Must use toJSON with user model, to hide password and other codes & tokens
+            user: user.toJSON(),
             tokens: await createTokensResponse(user, refreshToken)
         });
     },
@@ -93,8 +94,8 @@ module.exports = {
         const newUser = await User.findByIdAndUpdate({_id: userId}, {
             $set: {group: 'normal'},
             $unset: {activationCodes: ''}
-        });
-        res.send(newUser);
+        }, {new: true});
+        res.send(newUser.toJSON());
     },
 
     sendActivationCode: async (req, res) => {
@@ -122,7 +123,7 @@ module.exports = {
         });
 
         await user.save();
-        sendActivationCode(user, code);
+        await sendActivationCode(user, code);
 
         res.send({
             status: "sent"
@@ -133,7 +134,7 @@ module.exports = {
         const user = await req.user();
         const tokens = await createRefreshResponse(req.body.refreshToken, req.RefreshTokenId, user);
         res.send({
-            user,
+            user: user.toJSON(),
             tokens
         });
     },
