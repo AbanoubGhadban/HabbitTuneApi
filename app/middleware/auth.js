@@ -124,7 +124,7 @@ const parentInFamily = (allowAdmin = true, payload = 'params') => async (req, re
 
     const familyId = req[payload].familyId;
     const family = await Family.findById(familyId).exec();
-    if (!family.father.equals(user._id) && !family.mother.equals(user._id)) {
+    if (!family.parent1.equals(user._id) && !family.parent2.equals(user._id)) {
         throw new ForbiddenError(
             errors.NOT_PARENT_IN_FAMILY,
             'You are trying to modify other family'
@@ -142,7 +142,7 @@ const parentOfChild = (allowAdmin = true, payload = 'params') => async (req, res
     const childId = req[payload].childId;
     const family = Family.findOne({
         $and: [
-            { $or: [ {father: user._id}, {mother: user._id} ] },
+            { $or: [ {parent1: user._id}, {parent2: user._id} ] },
             { children: childId }
         ]
     });

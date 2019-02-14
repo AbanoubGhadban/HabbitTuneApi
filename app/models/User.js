@@ -1,6 +1,7 @@
 const mongoose = require('../utils/database');
 const RefreshToken = require('./RefreshToken');
 const RegistrationToken = require('./RegistrationToken');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -57,6 +58,8 @@ const userSchema = new mongoose.Schema({
         select: false
     }
 });
+
+userSchema.plugin(mongoosePaginate);
 
 userSchema.options.toJSON = {
     transform: function (doc, ret, options) {

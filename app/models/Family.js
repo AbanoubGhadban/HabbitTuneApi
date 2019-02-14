@@ -24,12 +24,12 @@ const familySchema = new mongoose.Schema({
             message: '{VALUE} is not an integer value'
         }
     },
-    father: {
+    parent1: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: false
     },
-    mother: {
+    parent2: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: false
