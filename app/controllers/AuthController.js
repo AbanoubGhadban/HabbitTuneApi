@@ -61,9 +61,13 @@ module.exports = {
             throw AuthenticationError.invalidCredentials();
         }
 
-        const refreshTokenTTL = config.get('tokens.refreshTokenTTL');
+        const refreshTokenTTL = config.get('token.refreshTokenTTL');
         const refreshToken = new RefreshToken({
-            expAt: timeAfter(refreshTokenTTL)
+            expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
+        });
+
+        await User.updateOne({_id: user._id}, {
+            $push: {refreshTokens: refreshToken}
         });
 
         res.send({
@@ -111,7 +115,7 @@ module.exports = {
             }
         }
         
-        const code = generateCode(6);
+        const code = await generateCode(6);
         user.activationCodes.push({
             code,
             expAt: timeAfter(activationCodeTTL)
@@ -140,12 +144,12 @@ module.exports = {
         // TODO: delete registration tokens
         if (user.role === 'father' || user.role === 'mother') {
             await User.findByIdAndUpdate(user._id, {
-                $pull: {refreshTokens: {$elemMatch: {_id: req.refreshTokenId}}}
-            });
+                $pull: {refreshTokens: {_id: req.refreshTokenId}}
+            }, {multi: true});
         } else {
             await Child.findByIdAndUpdate(user._id, {
-                $pull: {refreshTokens: {$elemMatch: {_id: req.refreshTokenId}}}
-            });
+                $pull: {refreshTokens: {_id: req.refreshTokenId}}
+            }, {multi: true});
         }
 
         res.send({
