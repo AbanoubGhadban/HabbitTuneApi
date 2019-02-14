@@ -3,8 +3,10 @@ const { isParent } = require('../utils/utils');
 const AuthenticationError = require('../errors/AuthenticationError');
 const ForbiddenError = require('../errors/ForbiddenError');
 const errors = require('../errors/types');
+
 const User = require('../models/User');
 const Child = require('../models/Child');
+const Family = require('../models/Family');
 
 // Groups: Specify what groups of users are accepted (Pending, Normal, Admin)
 // If no groups provided, all users are blocked
@@ -21,8 +23,11 @@ const checkAuth = (groups, allowChildren) => {
         if (decoded.role === 'father' || decoded.role === 'mother') {
             // Add user object to request, so any function can access it
             // To get user, use req.user()
-            const user = await User.findById(decoded.id);
+            const user = await User.findById(decoded._id).exec();
             req.user = async () => user;
+
+            req.userId = decoded._id;
+            req.refreshTokenId = decoded.refreshTokenId;
 
             if (!groups || !groups.length) {
                 throw new ForbiddenError();
@@ -33,7 +38,7 @@ const checkAuth = (groups, allowChildren) => {
                 throw new ForbiddenError();
             }
         } else {
-            const child = await Child.findById(decoded.id);
+            const child = await Child.findById(decoded._id).exec();
             req.user = async () => child;
 
             if (!allowChildren) {
@@ -61,9 +66,15 @@ const checkRefreshToken = async (req, res, next) => {
     if (isParent(decoded)) {
         const user = await User.findById(decoded.id);
         req.user = async () => user;
+
+        req.userId = decod.id;
+        req.refreshTokenId = decoded.refreshTokenId;
     } else {
         const child = await Child.findById(decoded.id);
         req.user = async () => child;
+        
+        req.userId = decod.id;
+        req.refreshTokenId = decoded.refreshTokenId;
     }
     next();
 }
@@ -76,9 +87,7 @@ const sameUserId = (allowAdmin = true, payload = 'params') => async (req, res, n
         next();
     }
     
-    if (+req[payload].userId !== user.id) {
-        console.log("A", req[payload], user.id);
-        
+    if (+req[payload].userId !== user._id) {        
         throw new ForbiddenError(
             errors.ACTION_OF_ANOTHER_USER,
             'You are trying to do action by the name of other user'
@@ -96,8 +105,8 @@ const parentInFamily = (allowAdmin = true, payload = 'params') => async (req, re
     }
 
     const familyId = req[payload].familyId;
-    const matchedFamilies = await user.getFamilies({where: {id: familyId}});
-    if (!(matchedFamilies.length > 0)) {
+    const family = await Family.findById(familyId).exec();
+    if (!family.father.equals(user._id) && !family.mother.equals(user._id)) {
         throw new ForbiddenError(
             errors.NOT_PARENT_IN_FAMILY,
             'You are trying to modify other family'
@@ -113,16 +122,14 @@ const parentOfChild = (allowAdmin = true, payload = 'params') => async (req, res
     }
 
     const childId = req[payload].childId;
-    const matchedFamilies = await user.getFamilies({
-        attributes: ['id'],
-        include: [{
-            model: Child,
-            where: {id: childId},
-            attributes: ['id']
-        }]
+    const family = Family.findOne({
+        $and: [
+            { $or: [ {father: user._id}, {mother: user._id} ] },
+            { children: childId }
+        ]
     });
     
-    if (!(matchedFamilies.length > 0)) {
+    if (!family) {
         throw new ForbiddenError(
             errors.NOT_PARENT_OF_CHILD,
             'You are trying to access child not of you'
