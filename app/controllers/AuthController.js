@@ -1,6 +1,8 @@
 const User = require('../models/User');
+const Child = require('../models/Child');
 const Family = require('../models/Family');
 const bcrypt = require('bcrypt');
+const Fawn = require('fawn');
 const _ = require('lodash');
 const config = require('config');
 const { timeAfter, isParent } = require('../utils/utils');
@@ -13,11 +15,11 @@ const ValidationError = require('../errors/ValidationError');
 const sequelize = require('../utils/database');
 
 const {
-    getActivationCode
+    generateCode
 } = require('../utils/codeGenerators');
 const {
-    createTokens,
-    refreshAccessToken
+    createTokensResponse,
+    createRefreshResponse
 } = require('../utils/tokens');
 const {
     sendActivationCode
@@ -26,18 +28,28 @@ const {
 module.exports = {
     register: async (req, res) => {
         await sequelize.transaction(async (t) => {
-            const neededProps = _.pick(req.body, ['name', 'phone', 'role']);
+            const props = _.pick(req.body, ['name', 'phone', 'role']);
             const salt = await bcrypt.genSalt(10);
-            neededProps.password = await bcrypt.hash(req.body.password, salt);
+            props.password = await bcrypt.hash(req.body.password, salt);
             
-            const user = await User.create(neededProps, {transaction: t});
-            const tokens = await createTokens(user, t);
-            const code = await getActivationCode(user, t);
-            await sendActivationCode(user, code.code);
+            const user = new User(props);
+            const activationCodeTTL = +config.get('activationCodeTTL');
+            const code = await generateCode(6);
+            user.activationCodes.push({
+                code,
+                expAt: timeAfter(activationCodeTTL)
+            });
+
+            const refreshTokenTTL = config.get('tokens.refreshTokenTTL');
+            const refreshToken = new RefreshToken({
+                expAt: refreshToken? timeAfter(refreshTokenTTL) : null
+            });
+            await user.save();
+
+            await sendActivationCode(user, code);
             res.send({
-                // toJson is defined at User.js file to remove passord from response
-                ...user.toJson(),
-                tokens
+                user,
+                tokens: await createTokensResponse(user, refreshToken)
             });
         });
     },
@@ -46,87 +58,97 @@ module.exports = {
         const phone = req.body.phone;
         const password = req.body.password;
 
-        const user = await User.findOne({
-            where: {phone},
-            include: [{model: Family}]
-        });
+        const user = await User.findOne({phone}).select('+password').exec();
         if (!user || !(await bcrypt.compare(password, user.password))) {
             throw AuthenticationError.invalidCredentials();
         }
 
-        const tokens = await createTokens(user);
+        const refreshTokenTTL = config.get('tokens.refreshTokenTTL');
+        const refreshToken = new RefreshToken({
+            expAt: timeAfter(refreshTokenTTL)
+        });
+
         res.send({
-            ...user.toJson({plain: true}),
-            tokens
+            user,
+            tokens: await createTokensResponse(user, refreshToken)
         });
     },
 
     activate: async (req, res) => {
         const code = req.body.code;
-        const user = await req.user();
-        const codeObj = await ActivationCode.findOne({
-            where: { code, userId: user.id }
-        });
+        const userId = req.userId;
 
-        if (!codeObj) {
+        const user = await User.findOne({
+            _id: userId,
+            'activationCodes.code': code,
+            'activationCodes.expAt': { $gt: new Date() }
+        }).exec();
+        
+        if (!user) {
             throw ValidationError.invalidActivationCode(code);
-        } else if (codeObj.expAt && codeObj.expAt < (new Date())) {
-            throw ValidationError.expiredActivationCode(code);
-        }
+        } 
 
-        await user.update({
-            group: 'normal'
+        const newUser = await User.findByIdAndUpdate({_id: userId}, {
+            $set: {group: 'normal'},
+            $unset: {activationCodes: ''}
         });
-        await ActivationCode.destroy({where: {userId: user.id}});
-        // toJson is defined at User.js file to remove passord from response
-        res.send(user.toJson());
+        res.send(newUser);
     },
 
     sendActivationCode: async (req, res) => {
-        const user = await req.user();
+        const userId = req.userId;
+        const user = await User.findById(userId).select('+activationCodes').exec();
         const activationCodeTTL = +config.get('activationCodeTTL');
+
         // Ensure that no codes sent since two minutes
         const expectedTime = timeAfter(activationCodeTTL - 2*60);
-        const codeObj = await ActivationCode.findOne({where: {
-            userId: user.id, 
-            expAt: {$gt: expectedTime}
-        }});
-
-        if (codeObj) {
-            return res.send({
-                status: "not sent",
-                message: "You can only send message every 2 minutes"
-            });
+        if (user.activationCodes) {
+            for (const code of user.activationCodes) {
+                if (code.expAt > expectedTime) {
+                    return res.send({
+                        status: "not sent",
+                        message: "You can only send message every 2 minutes"
+                    });
+                }
+            }
         }
-
-        await sequelize.transaction(async (t) => {
-            const code = await getActivationCode(user, t);
-            await sendActivationCode(user, code.code);
+        
+        const code = generateCode(6);
+        user.activationCodes.push({
+            code,
+            expAt: timeAfter(activationCodeTTL)
         });
+
+        await user.save();
+        sendActivationCode(user, code);
+
         res.send({
             status: "sent"
         });
     },
 
     refreshToken: async(req, res) => {
-        const tokens = await refreshAccessToken(req.body.refreshToken, await req.user());
-        res.send(tokens);
+        const user = await req.getUser();
+        const tokens = await createRefreshResponse(req.body.refreshToken, req.RefreshTokenId, user);
+        res.send({
+            user,
+            tokens
+        });
     },
 
     logout: async(req, res) => {
         const user = await req.user();
-        const clientType = isParent(user)? 'user' : 'child';
 
-        await sequelize.transaction(async(t) => {
-            await RefreshToken.destroy({
-                where: {clientType, clientId: user.id},
-                transaction: t
+        // TODO: delete registration tokens
+        if (user.role === 'father' || user.role === 'mother') {
+            await User.findByIdAndUpdate(user._id, {
+                $pull: {refreshTokens: {$elemMatch: {_id: req.refreshTokenId}}}
             });
-            await RegistrationToken.destroy({
-                where: {clientType, clientId: user.id},
-                transaction: t
+        } else {
+            await Child.findByIdAndUpdate(user._id, {
+                $pull: {refreshTokens: {$elemMatch: {_id: req.refreshTokenId}}}
             });
-        })
+        }
 
         res.send({
             message: 'Logged Out'

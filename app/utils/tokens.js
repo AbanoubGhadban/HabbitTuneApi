@@ -8,17 +8,11 @@ const AuthenticationError = require('../errors/AuthenticationError');
 const accessTokenExp = +config.get('token.accessTokenTTL');
 const refreshTokenExp = +config.get('token.refreshTokenTTL');
 
-const getRefreshTokenExpDate = () => {
-    if (refreshTokenExp && !isNaN(refreshTokenExp)) {
-        return timeAfter(refreshTokenExp);
-    }
-    return null;
-}
-
-const createRefreshToken = async (user) => {
+const createRefreshToken = async (user, refreshToken) => {
     const data = {
         id: user.id,
-        role: user.role
+        role: user.role,
+        refreshTokenId: refreshToken._id
     };
 
     if (refreshTokenExp && !Number.isNaN(refreshTokenExp)){
@@ -27,11 +21,12 @@ const createRefreshToken = async (user) => {
     return signToken(data);
 }
 
-const createAccessToken = async (user) => {
+const createAccessToken = async (user, refreshToken) => {
     const data = {
         id: user.id,
         name: user.name,
-        role: user.role
+        role: user.role,
+        refreshTokenId: refreshToken._id
     };
 
     if (user.role === 'father' || user.role === 'mother') {
@@ -45,41 +40,30 @@ const createAccessToken = async (user) => {
     return signToken(data);
 }
 
-const createTokens = async (user, transaction) => {
-    const accessToken = await(createAccessToken(user));
-    const refreshToken = await(createRefreshToken(user));
-
-    const tokenObj = await RefreshToken.create({
-        'refreshToken': sha256(refreshToken),
-        'expAt': getRefreshTokenExpDate()
-    }, {transaction});
-    await user.addRefreshToken(tokenObj, {transaction});
+// user is instance of User Model
+// refreshToken is instance of RefreshToken model
+const createTokensResponse = async (user, refreshToken) => {
+    const accessTokenStr = await(createAccessToken(user, refreshToken));
+    const refreshTokenStr = await(createRefreshToken(user, refreshToken));
     
     return {
-        accessToken,
-        refreshToken
+        accessToken: accessTokenStr,
+        refreshToken: refreshTokenStr,
+        expAt: timeAfter(accessTokenExp)
     };
 }
 
-const refreshAccessToken = async (refreshToken, user, transaction) => {
-    const tokenObj = await RefreshToken.findOne({where: {
-        refreshToken: sha256(refreshToken)
-    }});
-
-    if (!tokenObj) {
-        throw AuthenticationError.refreshTokenExpired();
-    } else if (tokenObj.expAt && tokenObj.expAt <= (new Date())) {
-        await tokenObj.destroy({transaction});
-        throw AuthenticationError.refreshTokenExpired();        
-    }
+const createRefreshResponse = async(refreshToken, refreshTokenId, user) => {
+    const accessTokenStr = await(createAccessToken(user, {_id: refreshTokenId}));
     
     return {
-        accessToken: await createAccessToken(user),
-        refreshToken
+        accessToken: accessTokenStr,
+        refreshToken,
+        expAt: timeAfter(accessTokenExp)
     };
 }
 
 module.exports = { 
-    createTokens,
-    refreshAccessToken
+    createTokensResponse,
+    createRefreshResponse
 };
