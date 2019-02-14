@@ -64,16 +64,34 @@ const checkRefreshToken = async (req, res, next) => {
 
     // Check if client is parent or child
     if (isParent(decoded)) {
-        const user = await User.findById(decoded.id);
+        const user = await User.findById(decoded._id).exec();
         req.user = async () => user;
 
-        req.userId = decod.id;
+        const tmpUser = await User.findOne({
+            _id: user._id,
+            'refreshTokens._id': decoded.refreshTokenId
+        }).select('_id').exec();
+        
+        if (!tmpUser) {
+            throw AuthenticationError.invalidRefreshToken();
+        }
+
+        req.userId = decoded._id;
         req.refreshTokenId = decoded.refreshTokenId;
     } else {
-        const child = await Child.findById(decoded.id);
+        const child = await Child.findById(decoded._id);
         req.user = async () => child;
-        
-        req.userId = decod.id;
+
+        const tmpChild = Child.findOne({
+            _id: child._id,
+            'refreshTokens._id': decoded.refreshTokenId
+        }).select('_id').exec();
+
+        if (!tmpChild) {
+            throw AuthenticationError.invalidRefreshToken();
+        }
+
+        req.userId = decoded._id;
         req.refreshTokenId = decoded.refreshTokenId;
     }
     next();

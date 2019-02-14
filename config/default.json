@@ -10,10 +10,10 @@
 
     "db": {
         "name": "habbit-tune",
-        "port": 3306,
+        "port": 27017,
         "host": "localhost",
-        "user": "root",
-        "password": ""
+        "user": null,
+        "password": null
     },
 
     "itemsPerPage": 10,

@@ -8,7 +8,6 @@ const config = require('config');
 const { timeAfter, isParent } = require('../utils/utils');
 const AuthenticationError = require('../errors/AuthenticationError');
 
-const ActivationCode = require('../models/ActivationCode');
 const RefreshToken = require('../models/RefreshToken');
 const RegistrationToken = require('../models/RegistrationToken');
 const ValidationError = require('../errors/ValidationError');
@@ -27,30 +26,29 @@ const {
 
 module.exports = {
     register: async (req, res) => {
-        await sequelize.transaction(async (t) => {
-            const props = _.pick(req.body, ['name', 'phone', 'role']);
-            const salt = await bcrypt.genSalt(10);
-            props.password = await bcrypt.hash(req.body.password, salt);
-            
-            const user = new User(props);
-            const activationCodeTTL = +config.get('activationCodeTTL');
-            const code = await generateCode(6);
-            user.activationCodes.push({
-                code,
-                expAt: timeAfter(activationCodeTTL)
-            });
+        const props = _.pick(req.body, ['name', 'phone', 'role']);
+        const salt = await bcrypt.genSalt(10);
+        props.password = await bcrypt.hash(req.body.password, salt);
+        
+        const user = new User(props);
+        const activationCodeTTL = +config.get('activationCodeTTL');
+        const code = await generateCode(6);
+        user.activationCodes.push({
+            code,
+            expAt: timeAfter(activationCodeTTL)
+        });
 
-            const refreshTokenTTL = config.get('tokens.refreshTokenTTL');
-            const refreshToken = new RefreshToken({
-                expAt: refreshToken? timeAfter(refreshTokenTTL) : null
-            });
-            await user.save();
+        const refreshTokenTTL = config.get('token.refreshTokenTTL');
+        const refreshToken = new RefreshToken({
+            expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
+        });
+        user.refreshTokens.push(refreshToken);
+        await user.save();
 
-            await sendActivationCode(user, code);
-            res.send({
-                user,
-                tokens: await createTokensResponse(user, refreshToken)
-            });
+        await sendActivationCode(user, code);
+        res.send({
+            user,
+            tokens: await createTokensResponse(user, refreshToken)
         });
     },
 
@@ -128,7 +126,7 @@ module.exports = {
     },
 
     refreshToken: async(req, res) => {
-        const user = await req.getUser();
+        const user = await req.user();
         const tokens = await createRefreshResponse(req.body.refreshToken, req.RefreshTokenId, user);
         res.send({
             user,

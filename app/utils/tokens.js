@@ -10,7 +10,7 @@ const refreshTokenExp = +config.get('token.refreshTokenTTL');
 
 const createRefreshToken = async (user, refreshToken) => {
     const data = {
-        id: user.id,
+        _id: user._id,
         role: user.role,
         refreshTokenId: refreshToken._id
     };
@@ -23,7 +23,7 @@ const createRefreshToken = async (user, refreshToken) => {
 
 const createAccessToken = async (user, refreshToken) => {
     const data = {
-        id: user.id,
+        _id: user._id,
         name: user.name,
         role: user.role,
         refreshTokenId: refreshToken._id

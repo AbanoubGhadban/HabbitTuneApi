@@ -1,4 +1,3 @@
-const ActivationCode = require('../models/ActivationCode');
 const JoinCode = require('../models/JoinCode');
 
 const config = require('config');
@@ -15,31 +14,6 @@ const generateCode = async (len) => {
         code += possible.charAt(index);
     }
     return code;
-}
-
-// Generate activation code and add it to db
-// Return Object of ActivationCode model
-const getActivationCode = async(user, transaction) => {
-    for (let i = 0;i < 1000;++i) {
-        const code = await generateCode(6);
-        const codeObj = await ActivationCode.findOne({where: {code}});
-
-        if (codeObj && (codeObj.expAt > new Date()))
-            continue;
-
-        // If code already exist but expired, delete it
-        if (codeObj) {
-            await codeObj.destroy({transaction});
-        }
-        const newCode = ActivationCode.build({
-            'code': code,
-            'expAt': timeAfter(activationCodeTTL),
-            'userId': user.id
-        });
-        await newCode.save({transaction});
-        return newCode;
-    }
-    throw new Error('Failed to generate activation code');
 }
 
 // Generate Joi code and add it to db
@@ -76,6 +50,6 @@ const getJoinCode = async(family, transaction) => {
 }
 
 module.exports = {
-    getActivationCode,
+    generateCode,
     getJoinCode
 };

@@ -4,8 +4,7 @@ const registrationTokenSchema = new mongoose.Schema({
     token: {
         type: String,
         index: true,
-        required: true,
-        unique: true
+        required: true
     },
     expAt: {
         type: Date,
