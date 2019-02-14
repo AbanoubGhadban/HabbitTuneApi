@@ -13,10 +13,11 @@ const _ = require('lodash');
 module.exports = {
     update: async(req, res) => {
         const childId = req.params.childId;
-        const child = Child.findOne({id: childId});
-
         const props = _.pick(['name', 'role']);
-        await child.update(props);
-        res.send(child.get({plain: true}));
+        
+        const newChild = await Child.findByIdAndUpdate(childId, {
+            $set: {...props}
+        });
+        res.send(newChild.toJSON());
     }
 }
