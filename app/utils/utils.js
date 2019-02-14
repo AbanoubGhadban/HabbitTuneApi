@@ -10,20 +10,8 @@ const timeAfter = seconds => {
 
 const isParent = user => (user.role === 'father' || user.role === 'mother');
 
-const paginate = (data, count, offset, itemsPerPage) => {
-    return {
-        data,
-        meta: {
-            count,
-            page: offset / itemsPerPage + 1,
-            perPage: itemsPerPage
-        }
-    };
-}
-
 module.exports = {
     sha256,
     timeAfter,
-    isParent,
-    paginate
+    isParent
 }
