@@ -61,6 +61,10 @@ module.exports = {
             throw AuthenticationError.invalidCredentials();
         }
 
+        if (req.query.adminLogin === 'true' && user.group !== 'admin') {
+            throw AuthenticationError.invalidCredentials();
+        }
+
         const refreshTokenTTL = config.get('token.refreshTokenTTL');
         const refreshToken = new RefreshToken({
             expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
