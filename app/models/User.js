@@ -64,6 +64,8 @@ userSchema.plugin(mongoosePaginate);
 userSchema.options.toJSON = {
     transform: function (doc, ret, options) {
         if (ret) {
+            ret.id = ret._id;
+            delete ret._id;
             delete ret.password;
             delete ret.activationCodes;
             delete ret.registrationTokens;
