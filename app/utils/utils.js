@@ -10,8 +10,34 @@ const timeAfter = seconds => {
 
 const isParent = user => (user.role === 'father' || user.role === 'mother');
 
+const parseInt = (value, defaultValue = 0, allowNegative = true) => {
+    const type = typeof(value);
+    if (type !== 'string' && type !== 'number') {
+        return defaultValue;
+    }
+
+    value = +value;
+    if (!Number.isInteger(value)) {
+        return defaultValue;
+    }
+    if (!allowNegative && value < 0) {
+        return defaultValue;
+    }
+    return value;
+}
+
+const delay = duration => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, duration);
+    });
+}
+
 module.exports = {
     sha256,
     timeAfter,
-    isParent
+    isParent,
+    parseInt,
+    delay
 }
