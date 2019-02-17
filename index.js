@@ -4,12 +4,14 @@ require('express-async-errors');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const config = require('config');
 
 const errorMiddleware = require('./app/middleware/error');
 const errTransformer = require('./app/middleware/errorTransform');
 require('./app/utils/database');
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/auth', require('./app/routes/auth'));
