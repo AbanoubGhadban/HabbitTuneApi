@@ -8,6 +8,7 @@ const errors = require('../errors/types');
 const _ = require('lodash');
 const config = require('config');
 const bcrypt = require('bcrypt');
+const {parseInt} = require('../utils/utils');
 
 module.exports = {
     index: async(req, res) => {
@@ -17,7 +18,7 @@ module.exports = {
             filter.name = {$regex: `.*${name}.*`};
         }
         if (phone) {
-            filter.phone = {$like: `.*${phone}.*`}
+            filter.phone = {$regex: `.*${phone}.*`}
         }
         if (role) {
             filter.role = role;
@@ -27,10 +28,12 @@ module.exports = {
         }
 
         const perPage = config.get('itemsPerPage');
-        const page = req.query.page? req.query.page : 1;
+        const page = parseInt(req.query.page, 1, false);
         
         const results = await User.paginate(filter, {
-            customLabels: {docs: 'data'}
+            customLabels: {docs: 'data'},
+            page,
+            limit: perPage
         });
         
         res.send(results);
