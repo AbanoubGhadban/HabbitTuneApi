@@ -37,8 +37,7 @@ const familySchema = new mongoose.Schema({
     children: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Child'
-    }],
-    joinCodes: [JoinCode.schema]
+    }]
 });
 
 familySchema.options.toJSON = {
