@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
         default: 'pending',
         required: true
     },
+    families: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family'
+    }],
     activationCodes: {
         type: [{
             _id: false,
