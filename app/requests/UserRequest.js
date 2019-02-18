@@ -10,11 +10,11 @@ module.exports = {
         password: joi.string().min(6).max(255).required()
     }),
 
-    update: {
+    update: validator({
         name: joi.string().min(2).max(100).optional(),
         phone: joi.string().min(5).max(20).optional(),
         role: joi.string().valid('father', 'mother').optional(),
         group: joi.string().valid('blocked', 'pending', 'normal', 'admin').optional(),
         password: joi.string().min(6).max(255).optional()
-    }
+    })
 };

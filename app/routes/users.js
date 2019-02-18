@@ -5,7 +5,8 @@ const auth = require('../middleware/auth');
 const request = require('../requests/UserRequest');
 
 router.get('/', UserController.index);
+router.get('/:userId', UserController.show);
 router.post('/', auth.onlyAdmins, request.post, UserController.store);
-router.put('/:userId([0-9]+)', auth.normalOrAdmin, auth.sameUserId(), UserController.update);
+router.put('/:userId', auth.normalOrAdmin, auth.sameUserId(), request.update, UserController.update);
 
 module.exports = router;
