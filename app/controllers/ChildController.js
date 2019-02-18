@@ -2,7 +2,6 @@ const Family = require('../models/Family');
 const User = require('../models/User');
 const Child = require('../models/Child');
 const JoinCode = require('../models/JoinCode');
-const ChildLoginCode = require('../models/ChildLoginCode');
 const ValidationError = require('../errors/ValidationError');
 const errors = require('../errors/types');
 const ForbiddenError = require('../errors/ForbiddenError');

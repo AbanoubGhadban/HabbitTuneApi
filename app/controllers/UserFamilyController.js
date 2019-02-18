@@ -2,90 +2,90 @@ const Family = require('../models/Family');
 const User = require('../models/User');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
+const NotFoundError = require('../errors/NotFoundError');
 const errors = require('../errors/types');
 const ForbiddenError = require('../errors/ForbiddenError');
+const mongoose = require('../utils/database');
 
-const sequelize = require('../utils/database');
+const Fawn = require('fawn');
 const _ = require('lodash');
 
 module.exports = {
     index: async(req, res) => {
         const userId = req.params.userId;
-        const user = await User.findOne({
-            where: {id: userId},
-            include: [{model: Family, through: {attributes: []}}]
-        });
+        const user = await User.findById(userId).populate('families').exec();
 
-        res.send(user.toJson().families);
+        res.send(user.toJSON().families);
     },
 
     store: async(req, res) => {
         const userId = req.params.userId;
+        const user = await User.findById(userId).populate('families').exec();
 
-        const userObj = await User.findOne({
-            where: {id: userId},
-            attributes: {
-                include: [[sequelize.fn('COUNT', sequelize.col('families.id')), 'familiesCount']]
-            },
-            include: [{ model: Family, attributes: [] }]
-        });
+        if (!user) {
+            throw new NotFoundError('user', userId);
+        }
         
-        if (userObj.role === 'mother' && userObj.get('familiesCount') !== 0) {
+        if (user.role === 'mother' && user.families.length > 0) {
             throw ValidationError.from('userId', userId, errors.MOTHER_ALREADY_BELONG_TO_FAMILY);
         }
 
-        const family = await userObj.createFamily({
-            'name': req.body.name
+        let family = new Family({
+            parent1: userId,
+            name: req.body.name
         });
-        res.send(family.get());
+
+        const task = new Fawn.Task();
+        task.save('families', family);
+        task.update('users', {_id: userId}, {
+            $push: {families: new mongoose.Types.ObjectId(family._id)}
+        });
+        await task.run({useMongoose: true});
+        
+        family = await Family.findById(family._id).populate('parent1').exec();
+        res.send(family.toJSON());
     },
 
     join: async(req, res) => {
-        const userId = +req.params.userId;
+        const userId = req.params.userId;
         const code = req.body.code;
 
-        const userObj = await User.findOne({
-            where: {id: userId},
-            attributes: {
-                include: [[sequelize.fn('COUNT', sequelize.col('families.id')), 'familiesCount']]
-            },
-            include: [{ model: Family, attributes: [] }]
-        });
+        let user = await User.findById(userId).exec();
+        const joinCode = await JoinCode.findOne({
+            code,
+            expAt: {$gt: new Date()}
+        }).populate('family').exec();
 
-        if (userObj.role === 'mother' && userObj.get('familiesCount') !== 0) {
+        if (!joinCode) {
+            throw ValidationError.invalidJoinCode(code);
+        }
+
+        const family = joinCode.family;
+        if (user.role === 'mother' && user.families.length > 0) {
             throw ValidationError.from('userId', userId, errors.MOTHER_ALREADY_BELONG_TO_FAMILY);
         }
 
-        const family = await Family.findOne({
-            attributes: ['id'],
-            include: [{
-                model: JoinCode,
-                as: 'JoinCodes',
-                attributes: [],
-                where: {
-                    code,
-                    expAt: { $gt: (new Date()) }
-                }
-            }]
-        });
-
-        if (!family) {
-            throw ValidationError.from('code', code, errors.INVALID_JOIN_CODE);
-        }
-
-        const matchedParents = await family.getUsers({
-            where: {role: userObj.role}
-        });
-        if (!(matchedParents.length === 0)) {
+        if (family.parent1 && family.parent2) {
             throw ValidationError.from('userId', userId, errors.ROLE_ALREADY_EXISTS);
         }
-        
-        await userObj.addFamily(family);
-        try {
-            await JoinCode.destroy({where: {familyId: family.id}});
-        } catch (err) {}
-        res.send({
-            message: "Joined Successfully"
+
+        if ((family.parent1 && family.parent1.role === user.role) ||
+            (family.parent2 && family.parent2.role === user.role)) {
+            throw ValidationError.from('userId', userId, errors.ROLE_ALREADY_EXISTS);
+        }
+
+        const parentField = family.parent1? 'parent2' : 'parent1';
+        const task = new Fawn.Task();
+        task.update('users', {_id: userId}, {
+            $push: {families: family._id}
         });
+        task.update('families', {_id: family._id}, {
+            $set: {[parentField]: user._id}
+        });
+        task.remove('joincodes', {family: family._id});
+        await task.run({useMongoose: true});
+
+        user = await User.findById(userId).populate('families').exec();
+        res.send(user.toJSON());
     }
 }

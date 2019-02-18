@@ -39,4 +39,16 @@ const childSchema = new mongoose.Schema({
     }
 });
 
+childSchema.options.toJSON = {
+    transform: function (doc, ret, options) {
+        if (ret) {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.registrationTokens;
+            delete ret.refreshTokens;
+        }
+        return ret;
+    }
+}
+
 module.exports = mongoose.model('Child', childSchema);

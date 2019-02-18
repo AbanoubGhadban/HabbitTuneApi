@@ -2,33 +2,37 @@ const Family = require('../models/Family');
 const User = require('../models/User');
 const Child = require('../models/Child');
 const JoinCode = require('../models/JoinCode');
-const ChildLoginCode = require('../models/ChildLoginCode');
 const ValidationError = require('../errors/ValidationError');
 const errors = require('../errors/types');
 const ForbiddenError = require('../errors/ForbiddenError');
+const mongoose = require('../utils/database');
 
-const sequelize = require('../utils/database');
+const Fawn = require('fawn');
 const _ = require('lodash');
 
 module.exports = {
     index: async(req, res) => {
         const familyId = req.params.familyId;
-        const family = await Family.findOne({
-            where: {id: familyId},
-            include: [{model: Child}]
-        });
+        const children = await Child.find({family: familyId}).exec();
 
-        res.send(family.get({plain: true}).children);
+        res.send(children.map(child => child.toJSON()));
     },
 
     store: async(req, res) => {
         const familyId = req.params.familyId;
         const props = _.pick(req.body, ['name', 'role']);
+        props.family = new mongoose.Types.ObjectId(familyId);
+        
+        let child = new Child(props);
 
-        const child = await Child.create({
-            ...props,
-            familyId
+        const task = new Fawn.Task();
+        task.save('child', child);
+        task.update('families', {_id: familyId}, {
+            $push: {children: child._id}
         });
-        res.send(child.get({plain: true}));
+        await task.run({useMongoose: true});
+
+        child = await Child.findById(child._id).populate('family').exec();
+        res.send(child.toJSON());
     }
 }

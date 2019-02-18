@@ -4,32 +4,55 @@ const Child = require('../models/Child');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const ForbiddenError = require('../errors/ForbiddenError');
+const mongoose = require('../utils/database');
 
-const sequelize = require('../utils/database');
 const _ = require('lodash');
+const config = require('config');
+const {timeAfter} = require('../utils/utils');
 
 const {
-    getJoinCode
+    generateCode
 } = require('../utils/codeGenerators');
 
 module.exports = {
     generateJoinCode: async (req, res) => {
         const familyId = req.params.familyId;
-        const familyObj = await Family.findOne({
-            where: {id: familyId},
-            attributes: {
-                include: [[sequelize.fn('COUNT', sequelize.col('users.id')), 'usersCount']]
-            },
-            include: [{ model: User, attributes: [] }]
-        });
+        const family = await Family.findById(familyId).exec();
 
-        if (familyObj.get('usersCount') > 1) {
-            throw ValidationError.bothParentsExist();
+        if (family.parent1 && family.parent2) {
+            throw ValidationError.bothParentsExist();            
         }
-        const code = await getJoinCode(familyObj);
 
-        res.send({
-            ...code.get({plain: true})
+        // May there is already JoinCode generated since a short time
+        const joinCodeTTL = config.get('joinCodeTTL');
+        const codeThreshold = timeAfter(0.25*joinCodeTTL);
+        const prevJoinCode = await JoinCode.findOne({
+            family: familyId,
+            expAt: {$gt: codeThreshold}
         });
+        
+        if (prevJoinCode) {
+            return res.send(prevJoinCode.toJSON());
+        }
+
+        for (let i = 0;i < 1000;++i) {
+            const code = await generateCode(6);
+            let joinCode = await JoinCode.find({code}).exec();
+
+            if (joinCode && joinCode.expAt > (new Date())) {
+                continue;
+            }
+            if (joinCode) {
+                await JoinCode.deleteOne({code});
+            }
+
+            joinCode = new JoinCode({
+                code,
+                expAt: timeAfter(joinCodeTTL),
+                family: new mongoose.Types.ObjectId(familyId)
+            });
+            await joinCode.save();
+            return res.send(joinCode.toJSON());
+        }
     },
 }
