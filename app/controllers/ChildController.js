@@ -6,7 +6,6 @@ const ValidationError = require('../errors/ValidationError');
 const errors = require('../errors/types');
 const ForbiddenError = require('../errors/ForbiddenError');
 
-const sequelize = require('../utils/database');
 const _ = require('lodash');
 
 module.exports = {

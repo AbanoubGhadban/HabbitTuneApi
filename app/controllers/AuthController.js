@@ -11,7 +11,6 @@ const AuthenticationError = require('../errors/AuthenticationError');
 const RefreshToken = require('../models/RefreshToken');
 const RegistrationToken = require('../models/RegistrationToken');
 const ValidationError = require('../errors/ValidationError');
-const sequelize = require('../utils/database');
 
 const {
     generateCode
