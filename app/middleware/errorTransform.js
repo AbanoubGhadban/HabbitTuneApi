@@ -1,6 +1,7 @@
 //const ApiError = require('../errors/ApiError');
 const ValidationError = require('../errors/ValidationError');
 const AuthenticationError = require('../errors/AuthenticationError');
+const NotFoundError = require('../errors/NotFoundError');
 const types = require('../errors/types');
 
 const handler = async (err, req, res, next) => {
@@ -37,6 +38,10 @@ const handler = async (err, req, res, next) => {
 
     if (err.name === "TokenExpiredError") {
         throw AuthenticationError.tokenExpired();
+    }
+
+    if (err.name === "CastError" && err.kind === "ObjectId") {
+        throw new NotFoundError("", err.value);
     }
 
     throw err;
