@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Child = require('../models/Child');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
+const NotFoundError = require('../errors/NotFoundError');
 const errors = require('../errors/types');
 
 const _ = require('lodash');
@@ -37,6 +38,16 @@ module.exports = {
         });
         
         res.send(results);
+    },
+
+    show: async(req, res) => {
+        const userId = req.params.userId;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            throw new NotFoundError('user', userId);
+        }
+        res.send(user.toJSON());
     },
 
     store: async(req, res) => {
