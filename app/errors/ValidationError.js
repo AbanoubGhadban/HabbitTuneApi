@@ -23,10 +23,10 @@ class ValidationError extends ApiError {
         });
     }
 
-    static expiredActivationCode(value) {
+    static invalidJoinCode(value) {
         return new ValidationError({
-            message: "Expired Activation Code",
-            type: types.EXPIRED_ACTIVATION_CODE,
+            message: "Invalid Join Code",
+            type: types.INVALID_JOIN_CODE,
             path: 'code',
             value
         });
