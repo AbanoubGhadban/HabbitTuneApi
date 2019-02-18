@@ -45,7 +45,7 @@ const checkAuth = (groups, allowChildren) => {
                 throw new ForbiddenError();
             }
         }
-        next();
+        return next();
     }
 }
 
@@ -94,7 +94,7 @@ const checkRefreshToken = async (req, res, next) => {
         req.userId = decoded._id;
         req.refreshTokenId = decoded.refreshTokenId;
     }
-    next();
+    return next();
 }
 
 // Checks that userId (some parameter sent by client) is the same as the current login user
@@ -102,7 +102,7 @@ const checkRefreshToken = async (req, res, next) => {
 const sameUserId = (allowAdmin = true, payload = 'params') => async (req, res, next) => {
     const user = await req.user();
     if (allowAdmin && user.group === 'admin') {
-        next();
+        return next();
     }
     
     if (+req[payload].userId !== user._id) {        
@@ -111,7 +111,7 @@ const sameUserId = (allowAdmin = true, payload = 'params') => async (req, res, n
             'You are trying to do action by the name of other user'
         );
     }
-    next();
+    return next();
 }
 
 // Checks that current user is parent in family that sent as (familyId)
@@ -119,7 +119,7 @@ const sameUserId = (allowAdmin = true, payload = 'params') => async (req, res, n
 const parentInFamily = (allowAdmin = true, payload = 'params') => async (req, res, next) => {
     const user = await req.user();
     if (allowAdmin && user.group === 'admin') {
-        next();
+        return next();
     }
 
     const familyId = req[payload].familyId;
@@ -130,13 +130,13 @@ const parentInFamily = (allowAdmin = true, payload = 'params') => async (req, re
             'You are trying to modify other family'
         );
     }
-    next();
+    return next();
 }
 
 const parentOfChild = (allowAdmin = true, payload = 'params') => async (req, res, next) => {
     const user = await req.user();
     if (allowAdmin && user.group === 'admin') {
-        next();
+        return next();
     }
 
     const childId = req[payload].childId;
@@ -153,7 +153,7 @@ const parentOfChild = (allowAdmin = true, payload = 'params') => async (req, res
             'You are trying to access child not of you'
         );
     }
-    next();
+    return next();
 }
 
 module.exports = {
