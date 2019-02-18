@@ -41,4 +41,15 @@ const familySchema = new mongoose.Schema({
     joinCodes: [JoinCode.schema]
 });
 
+familySchema.options.toJSON = {
+    transform: function (doc, ret, options) {
+        if (ret) {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.joinCodes;
+        }
+        return ret;
+    }
+}
+
 module.exports = mongoose.model('Family', familySchema);
