@@ -19,7 +19,7 @@
     "itemsPerPage": 10,
 
     "token": {
-        "accessTokenTTL": 6000,
+        "accessTokenTTL": 600,
         "refreshTokenTTL": null 
     },
 
