@@ -49,7 +49,7 @@ const createTokensResponse = async (user, refreshToken) => {
     return {
         accessToken: accessTokenStr,
         refreshToken: refreshTokenStr,
-        expAt: timeAfter(accessTokenExp)
+        expAt: timeAfter(accessTokenExp).getTime()
     };
 }
 
@@ -59,7 +59,7 @@ const createRefreshResponse = async(refreshToken, refreshTokenId, user) => {
     return {
         accessToken: accessTokenStr,
         refreshToken,
-        expAt: timeAfter(accessTokenExp)
+        expAt: timeAfter(accessTokenExp).getTime()
     };
 }
 
