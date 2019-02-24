@@ -1,6 +1,7 @@
 const Family = require('../models/Family');
 const User = require('../models/User');
 const Child = require('../models/Child');
+const NotFoundError = require('../errors/NotFoundError');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const ForbiddenError = require('../errors/ForbiddenError');
@@ -15,6 +16,31 @@ const {
 } = require('../utils/codeGenerators');
 
 module.exports = {
+    show: async(req, res) => {
+        const familyId = req.params.familyId;
+        const family = await Family.findById(familyId)
+        .populate('children')
+        .populate('parent1')
+        .populate('parent2').exec();
+
+        if (!family) {
+            throw new NotFoundError('family', familyId);
+        }
+        res.send(family.toJSON());
+    },
+
+    update: async(req, res) => {
+        const familyId = req.params.familyId;
+        const props = _.pick(req.body, ['name', 'status']);
+
+        await Family.update({
+            _id: familyId
+        }, {
+            $set: {...props}
+        });
+        await module.exports.show(req, res);
+    },
+
     generateJoinCode: async (req, res) => {
         const familyId = req.params.familyId;
         const family = await Family.findById(familyId).exec();
