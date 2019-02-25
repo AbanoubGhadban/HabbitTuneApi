@@ -21,7 +21,7 @@ module.exports = {
         
         const newChild = await Child.findByIdAndUpdate({_id: childId}, {
             $set: {...props}
-        }, {new: true});
+        }, {new: true}).populate('family').exec();
         res.send(newChild.toJSON());
     }
 }
