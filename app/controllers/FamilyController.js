@@ -33,12 +33,11 @@ module.exports = {
         const familyId = req.params.familyId;
         const props = _.pick(req.body, ['name', 'status']);
 
-        await Family.update({
-            _id: familyId
-        }, {
+        const family = await Family.findByIdAndUpdate(familyId, {
             $set: {...props}
-        });
-        await module.exports.show(req, res);
+        }, {new: true})
+        .populate('children').populate('parent1').populate('parent2').exec();
+        res.send(family.toJSON());
     },
 
     generateJoinCode: async (req, res) => {
