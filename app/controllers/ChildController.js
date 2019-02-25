@@ -9,13 +9,19 @@ const ForbiddenError = require('../errors/ForbiddenError');
 const _ = require('lodash');
 
 module.exports = {
+    show: async(req, res) => {
+        const childId = req.params.childId;
+        const child = await Child.findById(childId).populate('family').exec();
+        res.send(child.toJSON());
+    },
+
     update: async(req, res) => {
         const childId = req.params.childId;
-        const props = _.pick(['name', 'role']);
+        const props = _.pick(req.body, ['name', 'role']);
         
-        const newChild = await Child.findByIdAndUpdate(childId, {
+        const newChild = await Child.findByIdAndUpdate({_id: childId}, {
             $set: {...props}
-        });
+        }, {new: true});
         res.send(newChild.toJSON());
     }
 }
