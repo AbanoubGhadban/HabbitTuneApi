@@ -5,6 +5,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const ForbiddenError = require('../errors/ForbiddenError');
+const Fawn = require('fawn');
 const mongoose = require('../utils/database');
 
 const _ = require('lodash');
@@ -80,4 +81,36 @@ module.exports = {
             return res.send(joinCode.toJSON());
         }
     },
+
+    addParent: async(req, res) => {
+        const familyId = req.params.familyId;
+        const userId = req.params.userId;
+        const family = await Family.findById(familyId)
+        .populate('parent1').populate('parent2').exec();
+        const user = await User.findById(userId).exec();
+
+        if (family.parent1 || family.parent2) {
+            if (family.parent1 && family.parent2) {
+                throw ValidationError.from('userId', userId, errors.ROLE_ALREADY_EXISTS);
+            }
+            const currentParent = family.parent1 || family.parent2;
+            if (currentParent.role === user.role) {
+                throw ValidationError.from('userId', userId, errors.ROLE_ALREADY_EXISTS);
+            }
+        }
+
+        if (user.role === 'mother' && user.families.length > 0) {
+            throw ValidationError.from('userId', userId, errors.MOTHER_ALREADY_BELONG_TO_FAMILY);
+        }
+
+        const parentField = family.parent1? 'parent2' : 'parent1';
+        const task = new Fawn.Task();
+        task.update('users', {_id: userId}, {
+            $push: {families: family._id}
+        });
+        task.update('families', {_id: family._id}, {
+            $set: {[parentField]: user._id}
+        });
+        await task.run({useMongoose: true});
+    }
 }

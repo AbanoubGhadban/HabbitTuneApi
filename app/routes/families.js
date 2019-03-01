@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 
 router.get('/:familyId', FamilyController.show);
 router.put('/:familyId', auth.normalOrAdmin, auth.parentInFamily(), request.update, FamilyController.update);
+router.put('/:familyId/join/:userId', auth.normalOrAdmin, auth.parentInFamily(), FamilyController.addParent);
 router.get('/:familyId/joinCode', auth.normalOrAdmin,
              auth.parentInFamily(), FamilyController.generateJoinCode);
 
