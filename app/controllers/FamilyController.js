@@ -112,5 +112,10 @@ module.exports = {
             $set: {[parentField]: user._id}
         });
         await task.run({useMongoose: true});
+
+        const newFamily = await Family.findById(familyId)
+        .populate('parent1').populate('parent2')
+        .populate('children').exec();
+        res.send(newFamily.toJSON());
     }
 }
