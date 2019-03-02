@@ -36,7 +36,7 @@ module.exports = {
 
         const family = await Family.findByIdAndUpdate(familyId, {
             $set: {...props}
-        }, {new: true})
+        }, { runValidators: true, context: 'query', new: true})
         .populate('children').populate('parent1').populate('parent2').exec();
         res.send(family.toJSON());
     },

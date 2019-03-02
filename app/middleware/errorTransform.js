@@ -6,16 +6,12 @@ const types = require('../errors/types');
 
 const handler = async (err, req, res, next) => {
     
-    if (err.name === 'SequelizeUniqueConstraintError' && Array.isArray(err.errors) && err.errors.length > 0) {
+    if (err.name === 'ValidationError') {
         
-        const originalErr = err.errors[0];
-        const error = new ValidationError({
-            message: originalErr.message,
-            type: types.UNIQUE_VIOLATION,
-            path: originalErr.path,
-            value: originalErr.value
-        });
-        throw error;
+        const fieldName = Object.keys(err.errors)[0];
+        const errorDetails = err.errors[fieldName];
+        throw ValidationError.from(errorDetails.path, 
+            errorDetails.value, errorDetails.kind, errorDetails.message);
 
     }
     

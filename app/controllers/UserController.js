@@ -90,7 +90,7 @@ module.exports = {
         
         const newUser = await User.findByIdAndUpdate(userId, {
             $set: {...props}
-        }, {new: true}).populate('families').exec();
+        }, { runValidators: true, context: 'query', new: true}).populate('families').exec();
         res.send(newUser.toJSON());
     }
 };

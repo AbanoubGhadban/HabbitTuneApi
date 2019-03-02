@@ -2,6 +2,7 @@ const mongoose = require('../utils/database');
 const RefreshToken = require('./RefreshToken');
 const RegistrationToken = require('./RegistrationToken');
 const mongoosePaginate = require('mongoose-paginate-v2');
+var uniqueValidator = require('mongoose-unique-validator');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -63,6 +64,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+userSchema.plugin(uniqueValidator);
 userSchema.plugin(mongoosePaginate);
 
 userSchema.options.toJSON = {
