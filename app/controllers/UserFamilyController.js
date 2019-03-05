@@ -82,10 +82,31 @@ module.exports = {
         task.update('families', {_id: family._id}, {
             $set: {[parentField]: user._id}
         });
-        task.remove('joincodes', {family: family._id});
         await task.run({useMongoose: true});
 
         user = await User.findById(userId).populate('families').exec();
+        res.send(user.toJSON());
+    },
+
+    leave: async(req, res) => {
+        const {userId, familyId} = req.params;
+        const family = await Family.findById(userId).exec();
+
+        if (!family.parent1 || !family.parent2) {
+            throw ValidationError.from('userId', userId, errors.REMOVING_THE_ONLY_PARENT_OF_FAMILY);
+        }
+
+        const parentField = family.parent1.equals(userId)? 'parent1' : 'parent2';
+        const task = new Fawn.Task();
+        task.update('users', {_id: userId}, {
+            $pull: {families: familyId}
+        });
+        task.update('families', {_id: familyId}, {
+            $unset: {[parentField]: ""}
+        });
+        await task.run({useMongoose: true});
+
+        const user = await User.findById(userId).populate('families').exec();
         res.send(user.toJSON());
     }
 }
