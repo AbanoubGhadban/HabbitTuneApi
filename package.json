@@ -20,6 +20,7 @@
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.11",
     "mongoose": "^5.4.12",
+    "mongoose-dateonly": "^1.0.6",
     "mongoose-paginate-v2": "^1.0.21",
     "mongoose-unique-validator": "^2.0.2"
   }

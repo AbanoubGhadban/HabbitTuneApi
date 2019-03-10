@@ -20,6 +20,7 @@ app.use('/families', require('./app/routes/familyChildren'));
 app.use('/users', require('./app/routes/users'));
 app.use('/users', require('./app/routes/userFamilies'));
 app.use('/children', require('./app/routes/children'));
+app.use('/children', require('./app/routes/childActivities'));
 
 app.use(errTransformer);
 app.use(errorMiddleware);

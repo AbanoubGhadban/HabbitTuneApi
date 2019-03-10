@@ -9,12 +9,18 @@ module.exports = {
     // invalid username or password
     INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
 
+    // Validation Error
+    END_DATE_BEFORE_START_DATE: "END_DATE_BEFORE_START_DATE",
+
     INVALID_ACTIVATION_CODE: 'INVALID_ACTIVATION_CODE',
     INVALID_JOIN_CODE: 'INVALID_ACTIVATION_CODE',
 
     ACTION_OF_ANOTHER_USER: 'ACTION_OF_ANOTHER_USER',
     NOT_PARENT_IN_FAMILY: 'NOT_PARENT_IN_FAMILY',
     NOT_PARENT_OF_CHILD: 'NOT_PARENT_OF_CHILD',
+
+    // When parent tries to add activities of day not today
+    ACTIVITY_DATE_PASSED: 'ACTIVITY_DATE_PASSED',
 
     BOTH_PARENTS_EXIST: 'BOTH_PARENTS_EXIST',
     // When father try to join family already having father

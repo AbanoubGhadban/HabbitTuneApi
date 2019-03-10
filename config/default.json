@@ -18,8 +18,10 @@
 
     "itemsPerPage": 10,
 
+    "ksaOffset": -180,
+
     "token": {
-        "accessTokenTTL": 600,
+        "accessTokenTTL": 60000,
         "refreshTokenTTL": null 
     },
 

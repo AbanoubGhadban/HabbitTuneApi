@@ -34,10 +34,25 @@ const delay = duration => {
     });
 }
 
+const sliceArray = (arr, from, to) => {
+    const max = to > from? to : arr.length;
+    let newArr = arr.slice(from, max);
+    if (to <= from) {
+        newArr = newArr.concat(arr.slice(0, to));
+    }
+    return newArr;
+}
+
+const arrIntersection = (arr1, arr2) => {
+    return arr1.filter(item => arr2.includes(item));
+}
+
 module.exports = {
     sha256,
     timeAfter,
     isParent,
     parseInt,
-    delay
+    delay,
+    sliceArray,
+    arrIntersection
 }
