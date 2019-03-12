@@ -1,6 +1,5 @@
 const mongoose = require('../utils/database');
-const Child = require('./Child');
-const JoinCode = require('./JoinCode');
+const User = require('./User');
 
 const familySchema = new mongoose.Schema({
     name: {
@@ -49,6 +48,17 @@ familySchema.options.toJSON = {
         }
         return ret;
     }
+}
+
+familySchema.methods.hasParent = function (parentId) {
+    const {parent1, parent2} = this;
+    // Parent1, Parent2 may by populated or not
+    return (
+        (parent1 instanceof mongoose.Types.ObjectId && parent1.equals(parentId)) ||
+        (parent2 instanceof mongoose.Types.ObjectId && parent1.equals(parent2)) ||
+        (parent1 instanceof User && parent1._id.equals(parentId)) ||
+        (parent2 instanceof User && parent2._id.equals(parentId))
+    );
 }
 
 module.exports = mongoose.model('Family', familySchema);

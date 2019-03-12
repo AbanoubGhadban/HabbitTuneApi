@@ -22,6 +22,7 @@ module.exports = {
     // When parent tries to add activities of day not today
     ACTIVITY_DATE_PASSED: 'ACTIVITY_DATE_PASSED',
 
+    PARENT_ALREADY_EXISTS_AT_FAMILY: 'PARENT_ALREADY_EXISTS_AT_FAMILY',
     BOTH_PARENTS_EXIST: 'BOTH_PARENTS_EXIST',
     // When father try to join family already having father
     // Or mother try to join family already having mother

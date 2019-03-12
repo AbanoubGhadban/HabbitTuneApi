@@ -50,6 +50,16 @@ module.exports = {
         res.send(user.toJSON());
     },
 
+    showByPhone: async(req, res) => {
+        const {phone} = req.params;
+        const user = await User.findOne({phone}).populate('families').exec();
+
+        if (!user) {
+            throw new NotFoundError('user', phone);
+        }
+        res.send(user.toJSON());
+    },
+
     store: async(req, res) => {
         const props = _.pick(req.body, ['name', 'phone', 'role', 'group']);
         const salt = await bcrypt.genSalt();

@@ -2,6 +2,7 @@ const Family = require('../models/Family');
 const User = require('../models/User');
 const Child = require('../models/Child');
 const NotFoundError = require('../errors/NotFoundError');
+const errors = require('../errors/types');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const ForbiddenError = require('../errors/ForbiddenError');
@@ -88,6 +89,10 @@ module.exports = {
         const family = await Family.findById(familyId)
         .populate('parent1').populate('parent2').exec();
         const user = await User.findById(userId).exec();
+
+        if (family.hasParent(userId)) {
+            throw ValidationError.from('userId', userId, errors.PARENT_ALREADY_EXISTS_AT_FAMILY);
+        }
 
         if (family.parent1 || family.parent2) {
             if (family.parent1 && family.parent2) {
