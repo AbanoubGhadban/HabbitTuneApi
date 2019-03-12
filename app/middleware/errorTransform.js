@@ -5,16 +5,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const types = require('../errors/types');
 
 const handler = async (err, req, res, next) => {
-    
-    if (err.name === 'ValidationError') {
-        
-        const fieldName = Object.keys(err.errors)[0];
-        const errorDetails = err.errors[fieldName];
-        throw ValidationError.from(errorDetails.path, 
-            errorDetails.value, errorDetails.kind, errorDetails.message);
 
-    }
-    
     if (err.isJoi === true && Array.isArray(err.details) && err.details.length > 0) {
 
         const originalErr = err.details[0];
@@ -26,6 +17,15 @@ const handler = async (err, req, res, next) => {
             meta: originalErr.context
         });
         throw error;
+    }
+    
+    if (err.name === 'ValidationError') {
+        
+        const fieldName = Object.keys(err.errors)[0];
+        const errorDetails = err.errors[fieldName];
+        throw ValidationError.from(errorDetails.path, 
+            errorDetails.value, errorDetails.kind, errorDetails.message);
+
     }
 
     if (err.name === "JsonWebTokenError") {

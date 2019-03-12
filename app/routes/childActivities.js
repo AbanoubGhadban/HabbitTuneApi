@@ -5,9 +5,9 @@ const auth = require('../middleware/auth');
 const parseDate = require('../middleware/parseDate');
 const parseFromToDate = require('../middleware/parseFromToDate');
 
-router.get('/:childId/activities/:year/:month/:day', auth.exceptPendings, parseDate(), ChildActivityCtrl.show);
-router.post('/:childId/activities/:year/:month/:day', auth.normalOrAdmin, auth.parentOfChild(), parseDate(), ChildActivityCtrl.store);
-router.get('/:childId/progress/:fromYear/:fromMonth/:fromDay/:toYear/:toMonth/:toDay',
+router.get('/:childId/activities/:date', auth.exceptPendings, parseDate(), ChildActivityCtrl.show);
+router.post('/:childId/activities/:date', auth.normalOrAdmin, auth.parentOfChild(), parseDate(), ChildActivityCtrl.store);
+router.get('/:childId/progress/:fromDate/:toDate',
  auth.exceptPendings, parseFromToDate(), ChildActivityCtrl.getProgress);
 
 module.exports = router;

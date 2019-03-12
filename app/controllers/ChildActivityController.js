@@ -1,10 +1,6 @@
-const {
-  getDayName,
-  getKsaDate,
-  getDiffInDays,
-  getDateOnly
-} = require('../utils/dates');
+const DateOnly = require('../utils/DateOnly');
 const DayActivity = require('../models/DayActivity');
+const ActivityHistory = require('../models/ActivityHistory');
 const Activity = require('../models/Activity');
 const Child = require('../models/Child');
 const NotFoundError = require('../errors/NotFoundError');
@@ -18,35 +14,53 @@ module.exports = {
     const {date, childId} = req.params;
     
     const dayActivity = await DayActivity.findOne({
-      child: childId, date
-    }).populate('activities.activity').exec();
+      child: childId,
+      date: date.valueOf()
+    }).exec();
 
-    if (!dayActivity) {
-      throw new NotFoundError('DayActivity');
+    let allActivities = [];
+    let activityHistory = null;
+    const today = new DateOnly();
+    if (today.equals(date) ||
+        !(activityHistory = await ActivityHistory.findOne({ date: date.valueOf() }).populate('activities').exec())) {
+      allActivities = await Activity.find({ $or: [
+        { days: today.getDayName() },
+        { days: null },
+        { days: [] }
+      ], hidden: { $ne: true }}).exec();
+      allActivities = allActivities.map(a => a.toJSON());
+    } else {
+      allActivities = activityHistory.toJSON().activities;
     }
-    res.send(dayActivity.toJSON());
+    
+    res.send({
+      date,
+      child: childId,
+      dayActivity: dayActivity? dayActivity.toJSON() : null,
+      allActivities
+    });
   },
 
   store: async(req, res) => {
     const {date, childId} = req.params;
     const child = await Child.findById(childId).exec();
-    const today = getKsaDate();
-    if (today.year !== date.year || today.month !== date.month || today.date !== date.date) {
+    const today = new DateOnly();
+    if (!today.equals(date)) {
       //throw ValidationError.from('date', date, types.ACTIVITY_DATE_PASSED);
     }
 
     let totalPoints = 0;
     let activityObjects = await Activity.find({
       _id: { $in: req.body.activities },
-      startDate: { $lte: today },
-      $or: [{ $endDate: null }, { $endDate: { $gt: today.valueOf() } }],
-      $or: [ { days: getDayName(today) }, { days: null }, { days: [] }]
+      $or: [ { days: today.getDayName() }, { days: null }, { days: [] }],
+      hidden: { $ne: true }
     }).exec();
     
     activityObjects = activityObjects.map(a => {
       totalPoints += a.points;
       return {
-        activity: a._id,
+        _id: a._id,
+        name: a.name,
         points: a.points,
         category: a.category
       };
@@ -54,7 +68,7 @@ module.exports = {
 
     const parent = await req.user();
     let dayActivity = new DayActivity({
-      date,
+      date: date.valueOf(),
       child: childId,
       family: child.family,
       parent: parent._id,
@@ -65,7 +79,7 @@ module.exports = {
     let incChildPoints = totalPoints;
     const prevActivities = await DayActivity.findOne({
       child: childId,
-      date
+      date: date.valueOf()
     });
 
     // If parent submitted today activities before
@@ -84,9 +98,9 @@ module.exports = {
     if (prevActivities) {
       task.update('dayactivities', {
         child: new mongoose.Types.ObjectId(childId),
-        date
+        date: date.valueOf()
       }, { $set: {
-        date,
+        date: date.valueOf(),
         child: new mongoose.Types.ObjectId(childId),
         family: child.family,
         parent: parent._id,
@@ -98,42 +112,42 @@ module.exports = {
     }
 
     await task.run({useMongoose: true});
-
-    dayActivity = await DayActivity.findOne({
-      child: childId,
-      date
-    }).populate('activities.activity').exec();
-
-    res.send(dayActivity.toJSON());
+    await module.exports.show(req, res);
   },
 
   getProgress: async(req, res) => {
     let {fromDate, toDate, childId} = req.params;
-    
+    const child = await Child.findById(childId);
+
     const acheivedPoints = await DayActivity.aggregate([
-      {$unwind: "$activities"},
-      { $match: { date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() }, child: new mongoose.Types.ObjectId("5c6a89a5c779ac6f6d5e6561") } },
-      { $group: { _id: "$activities.category", totalPoints: { $sum: "$activities.points" } } }
+      { $unwind: "$activities" },
+      { $match: {
+        date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() },
+        child: new mongoose.Types.ObjectId(childId)
+      }},
+      { $group: {
+        _id: "$activities.category",
+        totalPoints: { $sum: "$activities.points" }
+      }},
+      { $project: { _id: 0, category: "$_id", totalPoints: 1 } }
     ]).exec();
 
-    const availableActivities = await Activity.find({
-      startDate: { $lte: toDate.valueOf() }
-    }).exec();
-
-    const categoryPoints = {};
-    for (const activity of availableActivities) {
-      if (!categoryPoints[activity.category]) {
-        categoryPoints[activity.category] = 0;
-      }
-      categoryPoints[activity.category] += activity.calculatePoints(fromDate, toDate);
-    };
+    const maxPoints = await ActivityHistory.aggregate([
+      { $unwind: "$points" },
+      { $match: { date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() } } },
+      { $group: {
+        _id: "$points.category",
+        totalPoints: { $sum: "$points.points" }
+      }},
+      { $project: { _id: 0, category: "$_id", totalPoints: 1 } }
+    ]);
 
     res.send({
       acheivedPoints: acheivedPoints,
-      maxPoints: categoryPoints,
-      child: childId,
-      fromDate,
-      toDate
+      maxPoints,
+      child: child.toJSON(),
+      fromDate: fromDate.valueOf(),
+      toDate: toDate.valueOf()
     });
   }
 };

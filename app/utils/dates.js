@@ -7,11 +7,15 @@ const getDateOnly = (year, month, date) => {
   return new DateOnly(new Date(year, month, date));
 }
 
+const equalDates = (d1, d2) => {
+  return (d1.year === d2.year && d1.month === d2.month && d1.date === d2.date);
+}
+
 const getKsaDate = () => {
   const ksaOffset = config.get('ksaOffset');
   const date = new Date();
   date.setMinutes(date.getMinutes() + date.getTimezoneOffset() - ksaOffset);
-  return getDateOnly(date.getFullYear(), date.getMonth() - 1, date.getDate());
+  return getDateOnly(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -58,6 +62,7 @@ const getMaxDate = (date1, date2) => {
 
 module.exports = {
   getDateOnly,
+  equalDates,
   getKsaDate,
   getDayName,
   getDiffInDays,

@@ -31,10 +31,15 @@ const dayActivitySchema = new mongoose.Schema({
     }
   },
   activities: [{
-    _id: false,
-    activity: {
+    _id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Activity',
+      required: true
+    },
+    name: {
+      type: String,
+      min: 2,
+      max: 255,
       required: true
     },
     points: {
@@ -58,11 +63,12 @@ dayActivitySchema.options.toJSON = {
   transform: function (doc, ret, options) {
     if (ret) {
       ret.id = ret._id;
-      ret.date = {
-        day: doc.date.date,
-        month: doc.date.month + 1,
-        year: doc.date.year
-      };
+      if (Array.isArray(ret.activities)) {
+        for (const c of ret.activities) {
+          c.id = c._id;
+          delete c.id;
+        }
+      }
       delete ret.date;
       delete ret._id;
     }

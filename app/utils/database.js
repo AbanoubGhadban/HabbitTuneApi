@@ -15,7 +15,8 @@ const getConnectionString = () => {
 }
 
 mongoose.connect(getConnectionString())
-.then(() => console.log('Connected to mongodb'));
+.then(() => {
+    console.log('Connected to mongodb')
+});
 Fawn.init(mongoose);
-
 module.exports = mongoose;

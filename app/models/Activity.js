@@ -15,14 +15,6 @@ const activitySchema = new mongoose.Schema({
     max: 255,
     required: true
   },
-  startDate: {
-    type: DateOnly,
-    required: true
-  },
-  endDate: {
-    type: DateOnly,
-    required: false
-  },
   points: {
     type: Number,
     required: true,
@@ -30,6 +22,10 @@ const activitySchema = new mongoose.Schema({
       validator: Number.isInteger,
       message: '{VALUE} is not an integer value'
     }
+  },
+  hidden: {
+    type: Boolean,
+    required: false
   },
   category: {
     type: String,
@@ -53,16 +49,5 @@ activitySchema.options.toJSON = {
     return ret;
   }
 }
-
-activitySchema.methods.calculatePoints = function(fromDate, toDate) {
-  fromDate = getMaxDate(fromDate, this.startDate);
-  toDate = this.endDate? getMinDate(toDate, this.endDate) : toDate;
-  const weeksCount = Math.floor((getDiffInDays(fromDate, toDate) + 1)/7);
-  const lastWeekDays = getDaysAtLastWeek(fromDate, toDate);
-  if (!this.days || this.days.length === 0) {
-    return (weeksCount * 7 + lastWeekDays.length) * this.points;
-  }
-  return (weeksCount * 7 + arrIntersection(this.days, lastWeekDays)) * this.points;
-};
 
 module.exports = mongoose.model('Activity', activitySchema);

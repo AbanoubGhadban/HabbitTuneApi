@@ -1,12 +1,11 @@
-const {getDateOnly} = require('../utils/dates');
+const DateOnly = require('../utils/DateOnly');
 
 module.exports = (payloadParam = 'params', dateParam = 'date') => (req, res, next) => {
   const payload = req[payloadParam];
-  const {year, month, day} = payload;
-  const date = getDateOnly(+year, +month - 1, +day);
+  const {date} = payload;
   req.params = {
     ...req.params,
-    [dateParam]: date
+    [dateParam]: new DateOnly(date)
   };
   next();
 }

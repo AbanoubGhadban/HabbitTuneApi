@@ -22,6 +22,7 @@
     "mongoose": "^5.4.12",
     "mongoose-dateonly": "^1.0.6",
     "mongoose-paginate-v2": "^1.0.21",
-    "mongoose-unique-validator": "^2.0.2"
+    "mongoose-unique-validator": "^2.0.2",
+    "node-cron": "^2.0.3"
   }
 }
