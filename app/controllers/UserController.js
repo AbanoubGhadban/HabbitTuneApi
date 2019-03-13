@@ -5,10 +5,12 @@ const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const errors = require('../errors/types');
+const mongoose = require('../utils/database');
 
 const _ = require('lodash');
 const config = require('config');
 const bcrypt = require('bcrypt');
+const Fawn = require('fawn');
 const {parseInt} = require('../utils/utils');
 
 module.exports = {
@@ -102,5 +104,29 @@ module.exports = {
             $set: {...props}
         }, { runValidators: true, context: 'query', new: true}).populate('families').exec();
         res.send(newUser.toJSON());
+    },
+
+    destroy: async(req, res) => {
+        const {userId} = req.params;
+        const user = await User.findById(userId).populate('families').exec();
+        for (const family of user.families) {
+            if (family.hasParent(userId) && !family.hasBothParents()) {
+                throw ValidationError.from('userId', userId, errors.DELETE_ONLY_PARENT_OF_FAMILY);
+            }
+        }
+
+        const task = new Fawn.Task();
+        task.remove('users', {_id: new mongoose.Types.ObjectId(userId)});
+        task.update('families', {parent1: new mongoose.Types.ObjectId(userId)}, {
+            $unset: {parent1: ""}
+        });
+        task.update('families', {parent2: new mongoose.Types.ObjectId(userId)}, {
+            $unset: {parent2: ""}
+        });
+        task.update('dayactivities', {parent: new mongoose.Types.ObjectId(userId)}, {
+            $unset: {parent: ""}
+        });
+        await task.run({useMongoose: true});
+        res.send();
     }
 };

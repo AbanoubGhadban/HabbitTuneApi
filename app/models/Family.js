@@ -55,10 +55,14 @@ familySchema.methods.hasParent = function (parentId) {
     // Parent1, Parent2 may by populated or not
     return (
         (parent1 instanceof mongoose.Types.ObjectId && parent1.equals(parentId)) ||
-        (parent2 instanceof mongoose.Types.ObjectId && parent1.equals(parent2)) ||
+        (parent2 instanceof mongoose.Types.ObjectId && parent2.equals(parent2)) ||
         (parent1 instanceof User && parent1._id.equals(parentId)) ||
         (parent2 instanceof User && parent2._id.equals(parentId))
     );
+}
+
+familySchema.methods.hasBothParents = function() {
+    return (this.parent1 && this.parent2);
 }
 
 module.exports = mongoose.model('Family', familySchema);
