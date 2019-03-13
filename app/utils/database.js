@@ -11,6 +11,7 @@ const getConnectionString = () => {
 
     const userString = user? (password? `${user}:${password}@` : `${user}@`) : '';
     const hostString = port? `${host}:${port}` : host;
+    //mongodb+srv://resuite:pass@cluster0-u6gxb.mongodb.net/test?retryWrites=true
     return `mongodb://${userString}${hostString}/${name}`;
 }
 

@@ -47,6 +47,30 @@ const arrIntersection = (arr1, arr2) => {
     return arr1.filter(item => arr2.includes(item));
 }
 
+const getBetweenQuery = (min, max) => {
+    const q = {};
+    let flag = false;
+    if (typeof(min) === 'number' || min) {
+        min = +min;
+        if (!Number.isNaN(min)) {
+            q.$gte = min;
+            flag = true;
+        }
+    }
+    if (typeof(max) === 'number' || max) {
+        max = +max;
+        if (!Number.isNaN(max)) {
+            q.$lte = max;
+            flag = true;
+        }
+    }
+    
+    if (flag) {
+        return q;
+    }
+    return null;
+}
+
 module.exports = {
     sha256,
     timeAfter,
@@ -54,5 +78,6 @@ module.exports = {
     parseInt,
     delay,
     sliceArray,
+    getBetweenQuery,
     arrIntersection
 }
