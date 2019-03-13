@@ -105,7 +105,7 @@ const sameUserId = (allowAdmin = true, payload = 'params') => async (req, res, n
         return next();
     }
     
-    if (+req[payload].userId !== user._id) {        
+    if (req[payload].userId !== user._id) {        
         throw new ForbiddenError(
             errors.ACTION_OF_ANOTHER_USER,
             'You are trying to do action by the name of other user'
