@@ -52,6 +52,11 @@ module.exports = {
         res.send(user.toJSON());
     },
 
+    showUserInfo: async(req, res) => {
+        const user = await req.user();
+        res.send(user.toJSON());
+    },
+
     showByPhone: async(req, res) => {
         const {phone} = req.params;
         const user = await User.findOne({phone}).populate('families').exec();

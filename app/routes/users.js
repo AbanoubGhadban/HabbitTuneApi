@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const request = require('../requests/UserRequest');
 
 router.get('/', UserController.index);
+router.get('/getInfo', auth.evenBlocked, UserController.showUserInfo);
 router.get('/:userId', UserController.show);
 router.get('/phone/:phone', UserController.showByPhone);
 router.post('/', auth.onlyAdmins, request.post, UserController.store);
