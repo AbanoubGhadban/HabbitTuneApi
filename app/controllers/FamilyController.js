@@ -11,13 +11,38 @@ const mongoose = require('../utils/database');
 
 const _ = require('lodash');
 const config = require('config');
-const {timeAfter} = require('../utils/utils');
+const {timeAfter, getBetweenQuery, parseInt} = require('../utils/utils');
 
 const {
     generateCode
 } = require('../utils/codeGenerators');
 
 module.exports = {
+    index: async(req, res) => {
+        const filter = {};
+        let {name, status, pointsMin, pointsMax} = req.query;
+        if (name) {
+            filter.name = {$regex: `.*${name}.*`};
+        }
+        if (status) {
+            filter.status = status;
+        }
+        if (getBetweenQuery(pointsMin, pointsMax)) {
+            filter.points = getBetweenQuery(pointsMin, pointsMax);
+        }
+
+        const perPage = config.get('itemsPerPage');
+        const page = parseInt(req.query.page, 1, false);
+        
+        const results = await Family.paginate(filter, {
+            customLabels: {docs: 'data'},
+            page,
+            limit: perPage
+        });
+        
+        res.send(results);
+    },
+
     show: async(req, res) => {
         const familyId = req.params.familyId;
         const family = await Family.findById(familyId)
@@ -122,5 +147,15 @@ module.exports = {
         .populate('parent1').populate('parent2')
         .populate('children').exec();
         res.send(newFamily.toJSON());
+    },
+
+    destroy: async(req, res) => {
+        const {familyId} = req.params;
+        const task = new Fawn.Task();
+        task.remove('family', {_id: new mongoose.Types.ObjectId(familyId)});
+        task.remove('child', {family: new mongoose.Types.ObjectId(familyId)});
+        task.remove('dayactivities', {family: new mongoose.Types.ObjectId(familyId)});
+        await task.run({useMongoose: true});
+        res.send();
     }
 }

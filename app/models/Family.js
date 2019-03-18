@@ -1,5 +1,6 @@
 const mongoose = require('../utils/database');
 const User = require('./User');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const familySchema = new mongoose.Schema({
     name: {
@@ -38,6 +39,8 @@ const familySchema = new mongoose.Schema({
         ref: 'Child'
     }]
 });
+
+familySchema.plugin(mongoosePaginate);
 
 familySchema.options.toJSON = {
     transform: function (doc, ret, options) {
