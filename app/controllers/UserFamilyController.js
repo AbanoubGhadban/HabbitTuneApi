@@ -90,7 +90,7 @@ module.exports = {
 
     leave: async(req, res) => {
         const {userId, familyId} = req.params;
-        const family = await Family.findById(userId).exec();
+        const family = await Family.findById(familyId).exec();
 
         if (!family.parent1 || !family.parent2) {
             throw ValidationError.from('userId', userId, errors.REMOVING_THE_ONLY_PARENT_OF_FAMILY);
@@ -98,10 +98,10 @@ module.exports = {
 
         const parentField = family.parent1.equals(userId)? 'parent1' : 'parent2';
         const task = new Fawn.Task();
-        task.update('users', {_id: userId}, {
-            $pull: {families: familyId}
+        task.update('users', {_id: new mongoose.Types.ObjectId(userId)}, {
+            $pull: {families: new mongoose.Types.ObjectId(familyId)}
         });
-        task.update('families', {_id: familyId}, {
+        task.update('families', {_id: mongoose.Types.ObjectId(familyId)}, {
             $unset: {[parentField]: ""}
         });
         await task.run({useMongoose: true});
