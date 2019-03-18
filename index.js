@@ -5,12 +5,14 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const delay = require('./app/middleware/delay');
 const config = require('config');
 
 const errorMiddleware = require('./app/middleware/error');
 const errTransformer = require('./app/middleware/errorTransform');
 const mongoose = require('./app/utils/database');
 
+// app.use(delay(300));
 app.use(cors());
 app.use(bodyParser.json());
 
