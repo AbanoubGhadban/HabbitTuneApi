@@ -8,5 +8,6 @@ router.get('/', ChildController.index);
 router.get('/:childId', ChildController.show);
 router.put('/:childId', auth.normalOrAdmin, auth.parentOfChild(), request.update, ChildController.update);
 router.delete('/:childId', auth.normalOrAdmin, auth.parentOfChild(), ChildController.destroy);
+router.post('/:childId/logoutAll', auth.exceptPendings, auth.parentOfChild(), ChildController.logout);
 
 module.exports = router;

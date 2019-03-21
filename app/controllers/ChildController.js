@@ -67,5 +67,15 @@ module.exports = {
         task.remove('dayactivities', {child: new mongoose.Types.ObjectId(childId)});
         await task.run({useMongoose: true});
         res.send();
+    },
+
+    logout: async(req, res) => {
+        const {childId} = req.params;
+        await Child.update({_id: childId}, {
+            $set: { refreshTokens: [] }
+        });
+        res.send({
+            message: 'Logged out from all sessions'
+        });
     }
 }

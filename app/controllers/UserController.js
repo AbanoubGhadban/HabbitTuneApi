@@ -133,5 +133,15 @@ module.exports = {
         });
         await task.run({useMongoose: true});
         res.send();
+    },
+    
+    logout: async(req, res) => {
+        const {userId} = req.params;
+        await User.update({_id: userId}, {
+            $set: { refreshTokens: [] }
+        });
+        res.send({
+            message: 'Logged out from all sessions'
+        });
     }
 };
