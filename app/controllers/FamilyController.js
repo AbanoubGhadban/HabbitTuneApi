@@ -78,6 +78,12 @@ module.exports = {
         // May there is already JoinCode generated since a short time
         const joinCodeTTL = config.get('joinCodeTTL');
         const codeThreshold = timeAfter(0.25*joinCodeTTL);
+
+        await JoinCode.deleteMany({
+            family: familyId,
+            expAt: {$lte: codeThreshold}
+        }).exec();
+        
         const prevJoinCode = await JoinCode.findOne({
             family: familyId,
             expAt: {$gt: codeThreshold}
@@ -106,6 +112,7 @@ module.exports = {
             await joinCode.save();
             return res.send(joinCode.toJSON());
         }
+        throw new Error('Failed to Generate Join Code');
     },
 
     addParent: async(req, res) => {

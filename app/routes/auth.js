@@ -6,6 +6,7 @@ const request = require('../requests/AuthRequest');
 
 router.post('/register', request.registration, AuthController.register);
 router.post('/login', request.login, AuthController.login);
+router.post('/childLogin', AuthController.childLogin);
 router.get('/logout', auth.evenBlocked, AuthController.logout);
 router.post('/refreshToken', auth.checkRefreshToken, AuthController.refreshToken);
 router.post('/activate', auth.onlyPendings, AuthController.activate);

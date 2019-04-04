@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Child = require('../models/Child');
 const Family = require('../models/Family');
+const LoginCode = require('../models/LoginCode');
 const bcrypt = require('bcrypt');
 const Fawn = require('fawn');
 const _ = require('lodash');
@@ -77,6 +78,37 @@ module.exports = {
             // Must use toJSON with user model, to hide password and other codes & tokens
             user: user.toJSON(),
             tokens: await createTokensResponse(user, refreshToken)
+        });
+    },
+
+    childLogin: async(req, res) => {
+        const code = req.body.code;
+
+        const loginCode = await LoginCode.findOne({
+            code,
+            expAt: {$gt: new Date()}
+        }).populate('child').exec();
+
+        if (!loginCode) {
+            throw ValidationError.invalidJoinCode(code);
+        }
+
+        const child = loginCode.child;
+        await LoginCode.deleteMany({child: child._id}).exec();
+
+        const refreshTokenTTL = config.get('token.refreshTokenTTL');
+        const refreshToken = new RefreshToken({
+            expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
+        });
+
+        await Child.updateOne({_id: child._id}, {
+            $push: {refreshTokens: refreshToken}
+        });
+
+        res.send({
+            // Must use toJSON with user model, to hide password and other codes & tokens
+            user: child.toJSON(),
+            tokens: await createTokensResponse(child, refreshToken)
         });
     },
 

@@ -1,4 +1,6 @@
 const Child = require('../models/Child');
+const LoginCode = require('../models/LoginCode');
+const ValidationError = require('../errors/ValidationError');
 const errors = require('../errors/types');
 const config = require('config');
 const {
@@ -9,6 +11,8 @@ const mongoose = require('../utils/database');
 const Fawn = require('fawn');
 
 const _ = require('lodash');
+const {timeAfter} = require('../utils/utils');
+const {generateCode} = require('../utils/codeGenerators');
 
 module.exports = {
     index: async(req, res) => {
@@ -77,5 +81,48 @@ module.exports = {
         res.send({
             message: 'Logged out from all sessions'
         });
+    },
+
+    generateLoginCode: async(req, res) => {
+        const childId = req.params.childId;
+
+        // May there is already LoginCode generated since a short time
+        const loginCodeTTL = config.get('childLoginCodeTTL');
+        const codeThreshold = timeAfter(0.25*loginCodeTTL);
+
+        await LoginCode.deleteMany({
+            child: childId,
+            expAt: {$lte: codeThreshold}
+        });
+
+        const prevLoginCode = await LoginCode.findOne({
+            child: childId,
+            expAt: {$gt: codeThreshold}
+        });
+        
+        if (prevLoginCode) {
+            return res.send(prevLoginCode.toJSON());
+        }
+
+        for (let i = 0;i < 1000;++i) {
+            const code = await generateCode(6);
+            let loginCode = await LoginCode.find({code}).exec();
+
+            if (loginCode && loginCode.expAt > (new Date())) {
+                continue;
+            }
+            if (loginCode) {
+                await LoginCode.deleteOne({code});
+            }
+
+            loginCode = new LoginCode({
+                code,
+                expAt: timeAfter(loginCodeTTL),
+                child: new mongoose.Types.ObjectId(childId)
+            });
+            await loginCode.save();
+            return res.send(loginCode.toJSON());
+        }
+        throw new Error('Failed to Generate Login Code');
     }
 }
