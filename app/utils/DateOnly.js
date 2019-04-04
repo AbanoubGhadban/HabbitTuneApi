@@ -1,4 +1,5 @@
 const config = require('config');
+const mongoose = require('./database');
 
 const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 class DateOnly {
@@ -30,6 +31,22 @@ class DateOnly {
       date.setMinutes(date.getMinutes() + date.getTimezoneOffset() - ksaOffset);
     }
     this.date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  static fromObjectId(objectId) {
+    if (objectId instanceof mongoose.Types.ObjectId) {
+      objectId = objectId.toString();
+    }
+
+    if (typeof(objectId) !== 'string') {
+      return null;
+    }
+    
+    const timestamp = objectId.substr(0, 8);
+    const date = new Date(parseInt(timestamp, 16) * 1000);
+    const ksaOffset = config.get('ksaOffset');
+    date.setMinutes(date.getMinutes() + date.getTimezoneOffset() - ksaOffset);
+    return new DateOnly(date);
   }
 
   getYear() {

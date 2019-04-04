@@ -119,6 +119,35 @@ module.exports = {
     let {fromDate, toDate, childId} = req.params;
     const child = await Child.findById(childId);
 
+    const childCreatedAt = DateOnly.fromObjectId(childId).valueOf();
+    let {minDate, maxDate} = (await ActivityHistory.aggregate([
+      {
+        $group: {
+          _id: null,
+          minDate: { $min: "$date" },
+          maxDate: { $max: "$date" }
+        }
+      },
+      {
+        $limit: 1
+      }
+    ]).exec())['0'];
+    minDate = Math.max(childCreatedAt, minDate);
+    maxDate = Math.min(maxDate, (new DateOnly()).valueOf());
+
+    if (fromDate < minDate || toDate > maxDate) {
+      throw ValidationError.from(
+        fromDate < minDate? 'fromDate' : 'toDate',
+        fromDate < minDate? fromDate.valueOf() : toDate.valueOf(),
+        types.PROGRESS_NOT_AVAILABLE,
+        'Progress not available for the provided range of days',
+        {
+          minDate: minDate.valueOf(),
+          maxDate: maxDate.valueOf()
+        }
+      );
+    }
+
     const acheivedPoints = await DayActivity.aggregate([
       { $unwind: "$activities" },
       { $match: {
