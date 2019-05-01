@@ -2,6 +2,7 @@ const mongoose = require('../utils/database');
 const RefreshToken = require('./RefreshToken');
 const RegistrationToken = require('./RegistrationToken');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const {childStorage} = require('../utils/storage');
 
 const childSchema = new mongoose.Schema({
     name: {
@@ -29,6 +30,11 @@ const childSchema = new mongoose.Schema({
         },
         index: true
     },
+    photo: {
+        type: String,
+        max: 30,
+        required: false
+    },
     registrationTokens: {
         type: [RegistrationToken.schema],
         select: false
@@ -45,6 +51,8 @@ childSchema.options.toJSON = {
     transform: function (doc, ret, options) {
         if (ret) {
             ret.id = ret._id;
+            ret.thumbnail = ret.photo? childStorage.getThumbUrl(ret.photo) : null;
+            ret.photo = ret.photo? childStorage.getFileUrl(ret.photo) : null;
             delete ret._id;
             delete ret.registrationTokens;
             delete ret.refreshTokens;

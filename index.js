@@ -5,6 +5,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const morgan = require('morgan');
 const delay = require('./app/middleware/delay');
 const config = require('config');
 
@@ -14,7 +15,10 @@ const mongoose = require('./app/utils/database');
 
 // app.use(delay(300));
 app.use(cors());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use(morgan('dev'));
+app.use('/imgs', express.static('imgs'));
 
 app.use('/auth', require('./app/routes/auth'));
 app.use('/families', require('./app/routes/families'));

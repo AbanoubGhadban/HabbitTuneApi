@@ -1,6 +1,7 @@
 const mongoose = require('../utils/database');
 const User = require('./User');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const {familyStorage} = require('../utils/storage');
 
 const familySchema = new mongoose.Schema({
     name: {
@@ -37,7 +38,12 @@ const familySchema = new mongoose.Schema({
     children: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Child'
-    }]
+    }],
+    photo: {
+        type: String,
+        max: 30,
+        required: false
+    }
 });
 
 familySchema.plugin(mongoosePaginate);
@@ -46,6 +52,8 @@ familySchema.options.toJSON = {
     transform: function (doc, ret, options) {
         if (ret) {
             ret.id = ret._id;
+            ret.thumbnail = ret.photo? familyStorage.getThumbUrl(ret.photo) : null;
+            ret.photo = ret.photo? familyStorage.getFileUrl(ret.photo) : null;
             delete ret._id;
             delete ret.joinCodes;
         }

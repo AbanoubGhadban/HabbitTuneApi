@@ -3,6 +3,7 @@ const RefreshToken = require('./RefreshToken');
 const RegistrationToken = require('./RegistrationToken');
 const mongoosePaginate = require('mongoose-paginate-v2');
 var uniqueValidator = require('mongoose-unique-validator');
+const {userStorage} = require('../utils/storage');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -39,6 +40,11 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Family'
     }],
+    photo: {
+        type: String,
+        max: 30,
+        required: false
+    },
     activationCodes: {
         type: [{
             _id: false,
@@ -71,6 +77,8 @@ userSchema.options.toJSON = {
     transform: function (doc, ret, options) {
         if (ret) {
             ret.id = ret._id;
+            ret.thumbnail = ret.photo? userStorage.getThumbUrl(ret.photo) : null;
+            ret.photo = ret.photo? userStorage.getFileUrl(ret.photo) : null;
             delete ret._id;
             delete ret.password;
             delete ret.activationCodes;

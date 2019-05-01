@@ -71,6 +71,26 @@ const getBetweenQuery = (min, max) => {
     return null;
 }
 
+const callbackToPromise = (fn, hasResult = true, ...params) => new Promise((resolve, reject) => {
+    if (hasResult) {
+        fn(...params, (res, err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(res);
+            }
+        });
+    } else {
+        fn(...params, err => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    }
+});
+
 module.exports = {
     sha256,
     timeAfter,
@@ -79,5 +99,6 @@ module.exports = {
     delay,
     sliceArray,
     getBetweenQuery,
+    callbackToPromise,
     arrIntersection
 }

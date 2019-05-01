@@ -12,6 +12,7 @@ const config = require('config');
 const bcrypt = require('bcrypt');
 const Fawn = require('fawn');
 const {parseInt} = require('../utils/utils');
+const {userStorage} = require('../utils/storage');
 
 module.exports = {
     index: async(req, res) => {
@@ -109,6 +110,22 @@ module.exports = {
             $set: {...props}
         }, { runValidators: true, context: 'query', new: true}).populate('families').exec();
         res.send(newUser.toJSON());
+    },
+
+    setProfilePicture: async(req, res) => {
+        const {userId} = req.params;
+        const user = await User.findById(userId).exec();
+        if (req.file) {
+            const fileName = req.file.filename;
+            await userStorage.createThumbnail(fileName);
+            user.photo = fileName;
+            await user.save();
+            res.send(user.toJSON());
+        } else {
+            user.photo = undefined;
+            await user.save();
+            res.send(user.toJSON());
+        }
     },
 
     destroy: async(req, res) => {

@@ -16,6 +16,7 @@ const {timeAfter, getBetweenQuery, parseInt} = require('../utils/utils');
 const {
     generateCode
 } = require('../utils/codeGenerators');
+const {familyStorage} = require('../utils/storage');
 
 module.exports = {
     index: async(req, res) => {
@@ -65,6 +66,22 @@ module.exports = {
         }, { runValidators: true, context: 'query', new: true})
         .populate('children').populate('parent1').populate('parent2').exec();
         res.send(family.toJSON());
+    },
+
+    setProfilePicture: async(req, res) => {
+        const {familyId} = req.params;
+        const family = await Family.findById(familyId).exec();
+        if (req.file) {
+            const fileName = req.file.filename;
+            await familyStorage.createThumbnail(fileName);
+            family.photo = fileName;
+            await family.save();
+            res.send(family.toJSON());
+        } else {
+            family.photo = undefined;
+            await family.save();
+            res.send(family.toJSON());
+        }
     },
 
     generateJoinCode: async (req, res) => {

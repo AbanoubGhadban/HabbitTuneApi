@@ -13,6 +13,7 @@ const Fawn = require('fawn');
 const _ = require('lodash');
 const {timeAfter} = require('../utils/utils');
 const {generateCode} = require('../utils/codeGenerators');
+const {childStorage} = require('../utils/storage');
 
 module.exports = {
     index: async(req, res) => {
@@ -55,6 +56,22 @@ module.exports = {
         }, { runValidators: true, context: 'query', new: true})
         .populate('family').exec();
         res.send(newChild.toJSON());
+    },
+
+    setProfilePicture: async(req, res) => {
+        const {childId} = req.params;
+        const child = await Child.findById(childId).exec();
+        if (req.file) {
+            const fileName = req.file.filename;
+            await childStorage.createThumbnail(fileName);
+            child.photo = fileName;
+            await child.save();
+            res.send(child.toJSON());
+        } else {
+            child.photo = undefined;
+            await child.save();
+            res.send(child.toJSON());
+        }
     },
 
     destroy: async(req, res) => {
