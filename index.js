@@ -34,11 +34,11 @@ app.use(errTransformer);
 app.use(errorMiddleware);
 
 mongoose.connection.addListener('connected', async () => {
-    // const dispatchJob = require('./app/jobs/dispatcher');
-    // const schedule = require('./app/jobs/cronJobs');
-    // const StoreActivitiesHistory = require('./app/jobs/StoreActivitiesHistory');
-    // await dispatchJob(new StoreActivitiesHistory());
-    // schedule();
+    const dispatchJob = require('./app/jobs/dispatcher');
+    const schedule = require('./app/jobs/cronJobs');
+    const StoreActivitiesHistory = require('./app/jobs/StoreActivitiesHistory');
+    await dispatchJob(new StoreActivitiesHistory());
+    schedule();
 
     const port = config.get('server.port');
     app.listen(port, () => {

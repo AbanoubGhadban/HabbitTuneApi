@@ -70,7 +70,7 @@ class DateOnly {
   }
 
   setDate(date) {
-    this.date(date);
+    this.date.setDate(date);
   }
 
   getDayName() {

@@ -4,7 +4,7 @@ const dispatchJob = async (job) => {
     await job.run();
     console.log(`${job.constructor.name} dispatched successfully`);
   } catch (err) {
-    console.log(`Error Occured at Job ${job.constructor.name}\n${err}`);
+    console.log(`Error Occured at Job ${job.constructor.name}\n`, err);
   }
 }
 
