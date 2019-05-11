@@ -3,6 +3,7 @@ const RefreshToken = require('./RefreshToken');
 const RegistrationToken = require('./RegistrationToken');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const {childStorage} = require('../utils/storage');
+const DateOnly = require('mongoose-dateonly')(mongoose);
 
 const childSchema = new mongoose.Schema({
     name: {
@@ -29,6 +30,10 @@ const childSchema = new mongoose.Schema({
             message: '{VALUE} is not an integer value'
         },
         index: true
+    },
+    birthdate: {
+        type: DateOnly,
+        required: false
     },
     photo: {
         type: String,

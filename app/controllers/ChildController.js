@@ -49,7 +49,7 @@ module.exports = {
 
     update: async(req, res) => {
         const childId = req.params.childId;
-        const props = _.pick(req.body, ['name', 'role']);
+        const props = _.pick(req.body, ['name', 'birthdate', 'role']);
         
         const newChild = await Child.findByIdAndUpdate({_id: childId}, {
             $set: {...props}

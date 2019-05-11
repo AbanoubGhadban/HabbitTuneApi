@@ -20,7 +20,7 @@ module.exports = {
 
     store: async(req, res) => {
         const familyId = req.params.familyId;
-        const props = _.pick(req.body, ['name', 'role']);
+        const props = _.pick(req.body, ['name', 'birthdate', 'role']);
         props.family = new mongoose.Types.ObjectId(familyId);
         
         let child = new Child(props);
