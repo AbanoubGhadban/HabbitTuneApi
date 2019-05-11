@@ -34,7 +34,7 @@ module.exports = {
     }
     
     res.send({
-      date,
+      date: date.valueOf(),
       child: childId,
       dayActivity: dayActivity? dayActivity.toJSON() : null,
       allActivities

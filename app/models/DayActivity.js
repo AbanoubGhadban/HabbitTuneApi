@@ -66,7 +66,7 @@ dayActivitySchema.options.toJSON = {
       if (Array.isArray(ret.activities)) {
         for (const c of ret.activities) {
           c.id = c._id;
-          delete c.id;
+          delete c._id;
         }
       }
       delete ret.date;
