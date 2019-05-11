@@ -4,7 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const config = require('config');
 const appUrl = config.get('app.url');
-const sharp = require('sharp');
 const {callbackToPromise} = require('./utils');
 
 const getStorage = directory => {
@@ -25,9 +24,7 @@ const createThumbnail = async(sourcePath, destPath) => {
     await callbackToPromise(fs.mkdir, false, thumbDir);
   }
   
-  return sharp(sourcePath)
-    .resize(128)
-    .toFile(destPath);
+  return Promise.resolve();
 }
 
 const userStorage = {
