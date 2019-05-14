@@ -18,4 +18,14 @@ const loginCodeSchema = new mongoose.Schema({
     }
 });
 
+loginCodeSchema.options.toJSON = {
+    transform: function (doc, ret, options) {
+        if (ret) {
+            ret.id = ret._id;
+            delete ret._id;
+        }
+        return ret;
+    }
+}
+
 module.exports = mongoose.model('LoginCode', loginCodeSchema);
