@@ -1,12 +1,5 @@
 const mongoose = require('../utils/database');
 const DateOnly = require('mongoose-dateonly')(mongoose);
-const {
-  getDaysAtLastWeek,
-  getDiffInDays,
-  getMaxDate,
-  getMinDate
-} = require('../utils/dates');
-const {arrIntersection} = require('../utils/utils');
 
 const activityHistorySchema = new mongoose.Schema({
   date: {

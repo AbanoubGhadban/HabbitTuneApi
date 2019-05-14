@@ -12,6 +12,7 @@ const mongoose = require('../utils/database');
 module.exports = {
   show: async(req, res) => {
     const {date, childId} = req.params;
+    const child = await Child.findById(childId).exec();
     
     const dayActivity = await DayActivity.findOne({
       child: childId,
@@ -36,6 +37,7 @@ module.exports = {
     res.send({
       date: date.valueOf(),
       child: childId,
+      progress: await child.getProgress(null, date),
       dayActivity: dayActivity? dayActivity.toJSON() : null,
       allActivities
     });
@@ -119,64 +121,6 @@ module.exports = {
     let {fromDate, toDate, childId} = req.params;
     const child = await Child.findById(childId);
 
-    const childCreatedAt = DateOnly.fromObjectId(childId).valueOf();
-    let {minDate, maxDate} = (await ActivityHistory.aggregate([
-      {
-        $group: {
-          _id: null,
-          minDate: { $min: "$date" },
-          maxDate: { $max: "$date" }
-        }
-      },
-      {
-        $limit: 1
-      }
-    ]).exec())['0'];
-    minDate = Math.max(childCreatedAt, minDate);
-    maxDate = Math.min(maxDate, (new DateOnly()).valueOf());
-
-    if (fromDate < minDate || toDate > maxDate) {
-      throw ValidationError.from(
-        fromDate < minDate? 'fromDate' : 'toDate',
-        fromDate < minDate? fromDate.valueOf() : toDate.valueOf(),
-        types.PROGRESS_NOT_AVAILABLE,
-        'Progress not available for the provided range of days',
-        {
-          minDate: minDate.valueOf(),
-          maxDate: maxDate.valueOf()
-        }
-      );
-    }
-
-    const acheivedPoints = await DayActivity.aggregate([
-      { $unwind: "$activities" },
-      { $match: {
-        date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() },
-        child: new mongoose.Types.ObjectId(childId)
-      }},
-      { $group: {
-        _id: "$activities.category",
-        totalPoints: { $sum: "$activities.points" }
-      }},
-      { $project: { _id: 0, category: "$_id", totalPoints: 1 } }
-    ]).exec();
-
-    const maxPoints = await ActivityHistory.aggregate([
-      { $unwind: "$points" },
-      { $match: { date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() } } },
-      { $group: {
-        _id: "$points.category",
-        totalPoints: { $sum: "$points.points" }
-      }},
-      { $project: { _id: 0, category: "$_id", totalPoints: 1 } }
-    ]);
-
-    res.send({
-      acheivedPoints: acheivedPoints,
-      maxPoints,
-      child: child.toJSON(),
-      fromDate: fromDate.valueOf(),
-      toDate: toDate.valueOf()
-    });
+    res.send(await child.getProgress(fromDate, toDate));
   }
 };
