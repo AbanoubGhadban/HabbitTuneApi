@@ -1,4 +1,5 @@
 const Child = require('../models/Child');
+const Family = require('../models/Family');
 const LoginCode = require('../models/LoginCode');
 const ValidationError = require('../errors/ValidationError');
 const errors = require('../errors/types');
@@ -87,7 +88,8 @@ module.exports = {
         });
         task.remove('dayactivities', {child: new mongoose.Types.ObjectId(childId)});
         await task.run({useMongoose: true});
-        res.send();
+
+        res.send((await Family.findById(child.family).exec()).toJSON());
     },
 
     logout: async(req, res) => {

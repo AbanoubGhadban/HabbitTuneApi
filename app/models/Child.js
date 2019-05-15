@@ -92,10 +92,10 @@ childSchema.methods.getProgress = async function (fromDate, toDate) {
     maxDate = Math.min(maxDate, (new DateOnly()).valueOf());
 
     if (fromDate < minDate) {
-      fromDate = new DateOnly(fromDate.valueOf());
+      fromDate = new DateOnly(minDate.valueOf());
     }
     if (toDate > maxDate) {
-        toDate = new DateOnly(toDate.valueOf());
+        toDate = new DateOnly(maxDate.valueOf());
     }
 
     const acheivedPoints = await DayActivity.aggregate([
