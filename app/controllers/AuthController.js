@@ -12,6 +12,7 @@ const AuthenticationError = require('../errors/AuthenticationError');
 const RefreshToken = require('../models/RefreshToken');
 const RegistrationToken = require('../models/RegistrationToken');
 const ValidationError = require('../errors/ValidationError');
+const types = require('../errors/types');
 
 const {
     generateCode
@@ -21,7 +22,8 @@ const {
     createRefreshResponse
 } = require('../utils/tokens');
 const {
-    sendActivationCode
+    sendActivationCode,
+    sendResetCode
 } = require('../utils/sms');
 
 module.exports = {
@@ -191,5 +193,77 @@ module.exports = {
         res.send({
             message: 'Logged Out'
         });
+    },
+
+    sendResetCode: async(req, res) => {
+        const {phone} = req.body;
+
+        const user = await User.findOne({phone}).select('+resetCodes').exec();
+        if (!user) {
+            throw ValidationError.from('phone', phone, types.PHONE_NOT_FOUND);
+        }
+        
+        const resetCodeTTL = +config.get('resetCodeTTL');
+        // Ensure that no codes sent since two minutes
+        const expectedTime = timeAfter(resetCodeTTL - 2*60);
+        if (user.resetCodes) {
+            for (const code of user.resetCodes) {
+                if (code.expAt > expectedTime) {
+                    return res.send({
+                        status: "not sent",
+                        message: "You can only send message every 2 minutes"
+                    });
+                }
+            }
+        }
+        
+        const code = await generateCode(6);
+        user.resetCodes.push({
+            code,
+            expAt: timeAfter(resetCodeTTL)
+        });
+
+        await user.save();
+        await sendResetCode(user, code);
+
+        res.send({
+            status: "sent"
+        });
+    },
+
+    checkResetCode: async (req, res) => {
+        const {code, phone} = req.body;
+        const user = await User.findOne({
+            phone,
+            'resetCodes.code': code,
+            'resetCodes.expAt': { $gt: new Date() }
+        }).exec();
+        
+        if (!user) {
+            throw ValidationError.invalidResetCode(code);
+        } 
+        res.send({vlid: true});
+    },
+
+    resetPassword: async (req, res) => {
+        const {code, phone, password} = req.body;
+        const user = await User.findOne({
+            phone,
+            'resetCodes.code': code,
+            'resetCodes.expAt': { $gt: new Date() }
+        }).exec();
+        
+        if (!user) {
+            throw ValidationError.invalidResetCode(code);
+        } 
+
+        const salt = await bcrypt.genSalt(10);
+        const newUser = await User.findOneAndUpdate({phone}, {
+            $set: {
+                password: await bcrypt.hash(password, salt)
+            },
+            $unset: {activationCodes: ''}
+        }, {new: true});
+        res.send(newUser.toJSON());
     }
 }

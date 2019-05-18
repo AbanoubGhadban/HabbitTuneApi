@@ -23,9 +23,18 @@ class ValidationError extends ApiError {
         });
     }
 
+    static invalidResetCode(value) {
+        return new ValidationError({
+            message: "Invalid Reset Code",
+            type: types.INVALID_RESET_CODE,
+            path: 'code',
+            value
+        });
+    }
+
     static invalidPhoneCode(value) {
         return new ValidationError({
-            message: "Invalid Activation Code",
+            message: "Invalid Phone Code",
             type: types.INVALID_PHONE_CODE,
             path: 'code',
             value

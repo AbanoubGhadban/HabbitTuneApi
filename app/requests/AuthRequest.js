@@ -19,4 +19,19 @@ module.exports = {
     activate: validator({
         code: joi.string().min(1).max(20).required()
     }),
+
+    sendResetCode: validator({
+        phone: joi.string().min(1).required()
+    }),
+
+    checkResetCode: validator({
+        phone: joi.string().min(1).required(),
+        code: joi.string().min(1).max(20).required()
+    }),
+
+    resetPassword: validator({
+        phone: joi.string().min(1).required(),
+        code: joi.string().min(1).max(20).required(),
+        password: joi.string().min(6).max(255).required()
+    }),
 };

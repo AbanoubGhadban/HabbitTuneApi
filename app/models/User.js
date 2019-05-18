@@ -80,6 +80,21 @@ const userSchema = new mongoose.Schema({
         }],
         select: false
     },
+    resetCodes: {
+        type: [{
+            _id: false,
+            code: {
+                type: String,
+                index: true,
+                required: true
+            },
+            expAt: {
+                type: Date,
+                required: true
+            }
+        }],
+        select: false
+    },
     registrationTokens: {
         type: [RegistrationToken.schema],
         select: false
@@ -102,6 +117,7 @@ userSchema.options.toJSON = {
             delete ret._id;
             delete ret.password;
             delete ret.activationCodes;
+            delete ret.resetCodes;
             delete ret.phoneCodes;
             delete ret.registrationTokens;
             delete ret.refreshTokens;

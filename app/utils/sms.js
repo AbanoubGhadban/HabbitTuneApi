@@ -22,4 +22,8 @@ const sendPhoneCode = async (user, code) => {
     return sendSms(`Hi ${user.name}\nThis is the verification Code: ${code}`, user.phone);
 }
 
-module.exports = {sendActivationCode, sendPhoneCode};
+const sendResetCode = async (user, code) => {
+    return sendSms(`Hi ${user.name}\nThis is the reset Code: ${code}`, user.phone);
+}
+
+module.exports = {sendActivationCode, sendPhoneCode, sendResetCode};
