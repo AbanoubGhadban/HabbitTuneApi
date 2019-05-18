@@ -11,8 +11,11 @@ const _ = require('lodash');
 const config = require('config');
 const bcrypt = require('bcrypt');
 const Fawn = require('fawn');
-const {parseInt} = require('../utils/utils');
+const {parseInt, timeAfter} = require('../utils/utils');
 const {userStorage} = require('../utils/storage');
+const types = require('../errors/types');
+const {sendPhoneCode} = require('../utils/sms');
+const {generateCode} = require('../utils/codeGenerators');
 
 module.exports = {
     index: async(req, res) => {
@@ -160,5 +163,100 @@ module.exports = {
         res.send({
             message: 'Logged out from all sessions'
         });
+    },
+
+    updateName: async(req, res) => {
+        const {userId} = req.params;
+        const {name} = req.body;
+
+        const newUser = await User.findByIdAndUpdate(userId, {
+            $set: {name}
+        }, {new: true}).populate('families').exec();
+
+        res.send(newUser.toJSON());
+    },
+
+    updatePassword: async(req, res) => {
+        const {userId} = req.params;
+        const {password, oldPassword} = req.body;
+        const user = await User.findById(userId).select("+password").exec();
+
+        if (!user || !(await bcrypt.compare(oldPassword, user.password))) {
+            throw ValidationError.from('oldPassword', null, types.WRONG_PASSWORD);
+        }
+
+        const salt = await bcrypt.genSalt();
+        const newUser = await User.findByIdAndUpdate(userId, {
+            $set: {
+                password: await bcrypt.hash(password, salt)
+            }
+        }, {new: true}).populate('families').exec();
+
+        res.send(newUser.toJSON());
+    },
+
+    getPhoneCode: async(req, res) => {
+        const {userId} = req.params;
+        const {phone} = req.body;
+
+        const tmpUser = await User.findOne({phone}).exec();
+        if (tmpUser) {
+            throw ValidationError.from('phone', phone, types.UNIQUE_VIOLATION);
+        }
+        
+        const user = await User.findById(userId).select('+phoneCodes').exec();
+        const phoneCodeTTL = +config.get('phoneCodeTTL');
+
+        // Ensure that no codes sent since two minutes
+        const expectedTime = timeAfter(phoneCodeTTL - 2*60);
+        if (user.phoneCodes) {
+            for (const code of user.phoneCodes) {
+                if (code.expAt > expectedTime) {
+                    return res.send({
+                        status: "not sent",
+                        message: "You can only send message every 2 minutes"
+                    });
+                }
+            }
+        }
+        
+        const code = await generateCode(6);
+        user.phoneCodes.push({
+            code,
+            phone,
+            expAt: timeAfter(phoneCodeTTL)
+        });
+
+        await user.save();
+        await sendPhoneCode(user, code);
+
+        res.send({
+            status: "sent"
+        });
+    },
+
+    updatePhone: async(req, res) => {
+        const {userId} = req.params;
+        const {code} = req.body;
+
+        const user = await User.findOne({
+            _id: userId,
+            'phoneCodes.code': code,
+            'phoneCodes.expAt': { $gt: new Date() }
+        }).select("+phoneCodes").exec();
+
+        const codeObj = user && Array.isArray(user.phoneCodes)
+        ? user.phoneCodes.find(c => c.code === code && c.expAt > new Date())
+        : null;
+        
+        if (!user || !codeObj) {
+            throw ValidationError.invalidPhoneCode(code);
+        } 
+
+        const newUser = await User.findByIdAndUpdate({_id: userId}, {
+            $set: {phone: codeObj.phone},
+            $unset: {phoneCodes: ''}
+        }, {new: true});
+        res.send(newUser.toJSON());
     }
 };

@@ -23,6 +23,15 @@ class ValidationError extends ApiError {
         });
     }
 
+    static invalidPhoneCode(value) {
+        return new ValidationError({
+            message: "Invalid Activation Code",
+            type: types.INVALID_PHONE_CODE,
+            path: 'code',
+            value
+        });
+    }
+
     static invalidJoinCode(value) {
         return new ValidationError({
             message: "Invalid Join Code",

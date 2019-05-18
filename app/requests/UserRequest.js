@@ -16,5 +16,22 @@ module.exports = {
         role: joi.string().valid('father', 'mother').optional(),
         group: joi.string().valid('blocked', 'pending', 'normal', 'admin').optional(),
         password: joi.string().min(6).max(255).optional()
+    }),
+
+    updateName: validator({
+        name: joi.string().min(2).max(100).required()
+    }),
+
+    updatePassword: validator({
+        oldPassword: joi.string().max(100).required(),
+        password: joi.string().min(6).max(255).required()
+    }),
+
+    getPhoneCode: validator({
+        phone: joi.string().min(5).max(20).required()
+    }),
+
+    updatePhone: validator({
+        code: joi.string().min(1).max(20).required()
     })
 };

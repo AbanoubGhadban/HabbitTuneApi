@@ -14,5 +14,9 @@ module.exports = {
     login: validator({
         phone: joi.string().min(1).required(),
         password: joi.string().min(1).required()
-    })
+    }),
+
+    activate: validator({
+        code: joi.string().min(1).max(20).required()
+    }),
 };
