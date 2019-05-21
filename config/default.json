@@ -1,7 +1,7 @@
 {
     "app": {
         "name": "Habbit Tune",
-        "url": "https://habbittune.com"
+        "url": "http://apihabbit.rizme.net"
     },
 
     "server": {
@@ -26,6 +26,8 @@
     },
 
     "activationCodeTTL": 600,
+    "phoneCodeTTL": 600,
+    "resetCodeTTL": 600,
     "joinCodeTTL": 600,
     "childLoginCodeTTL": 600
 }

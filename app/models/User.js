@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema({
         default: 'pending',
         required: true
     },
+    school: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'School',
+        required: false
+    },
     families: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Family'

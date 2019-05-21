@@ -59,6 +59,24 @@ module.exports = {
         res.send(newChild.toJSON());
     },
 
+    updateSchool: async(req, res) => {
+        const {childId} = req.params;
+        const {schoolId, fullName} = req.body;
+
+        const child = await Child.findById(childId).exec();
+        if (!child) {
+            throw new NotFoundError('child', childId);
+        }
+
+        if (schoolId) {
+            await child.setSchool(schoolId, fullName);
+        } else {
+            await child.exitSchool();
+        }
+
+        await module.exports.show(req, res);
+    },
+
     setProfilePicture: async(req, res) => {
         const {childId} = req.params;
         const child = await Child.findById(childId).exec();

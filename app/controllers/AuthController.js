@@ -58,7 +58,8 @@ module.exports = {
         const phone = req.body.phone;
         const password = req.body.password;
 
-        const user = await User.findOne({phone}).select('+password').exec();
+        const user = await User.findOne({phone})
+        .populate('families').populate('school').select('+password').exec();
         if (!user || !(await bcrypt.compare(password, user.password))) {
             throw AuthenticationError.invalidCredentials();
         }

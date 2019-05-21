@@ -29,6 +29,8 @@ app.use('/users', require('./app/routes/userFamilies'));
 app.use('/children', require('./app/routes/children'));
 app.use('/children', require('./app/routes/childActivities'));
 app.use('/activities', require('./app/routes/activities'));
+app.use('/attendance', require('./app/routes/attendance'));
+app.use('/schools', require('./app/routes/schools'));
 
 app.use(errTransformer);
 app.use(errorMiddleware);

@@ -4,7 +4,7 @@ const Child = require('../models/Child');
 const JoinCode = require('../models/JoinCode');
 const ValidationError = require('../errors/ValidationError');
 const errors = require('../errors/types');
-const ForbiddenError = require('../errors/ForbiddenError');
+const NotFoundError = require('../errors/NotFoundError');
 const mongoose = require('../utils/database');
 
 const Fawn = require('fawn');
@@ -21,11 +21,19 @@ module.exports = {
     store: async(req, res) => {
         const familyId = req.params.familyId;
         const props = _.pick(req.body, ['name', 'birthdate', 'role']);
+        const {fullName, schoolId} = req.body;
         props.family = new mongoose.Types.ObjectId(familyId);
         
         let child = new Child(props);
+        const family = await Family.findById(familyId).exec();
+        if (!family) {
+            throw new NotFoundError('family', familyId);
+        }
 
         const task = new Fawn.Task();
+        if (fullName && schoolId) {
+            await child.setSchool(schoolId, fullName, task);
+        }
         task.save('child', child);
         task.update('families', {_id: familyId}, {
             $push: {children: child._id}
