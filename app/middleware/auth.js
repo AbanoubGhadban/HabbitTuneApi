@@ -40,6 +40,8 @@ const checkAuth = (groups, allowChildren) => {
         } else {
             const child = await Child.findById(decoded._id).exec();
             req.user = async () => child;
+            req.userId = decoded._id;
+            req.refreshTokenId = decoded.refreshTokenId;
 
             if (!allowChildren) {
                 throw new ForbiddenError();

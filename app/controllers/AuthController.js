@@ -42,6 +42,8 @@ module.exports = {
 
         const refreshTokenTTL = config.get('token.refreshTokenTTL');
         const refreshToken = new RefreshToken({
+            fcmToken: req.body.fcmToken,
+            lastSeen: new Date(),
             expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
         });
         user.refreshTokens.push(refreshToken);
@@ -70,6 +72,8 @@ module.exports = {
 
         const refreshTokenTTL = config.get('token.refreshTokenTTL');
         const refreshToken = new RefreshToken({
+            fcmToken: req.body.fcmToken,
+            lastSeen: new Date(),
             expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
         });
 
@@ -101,6 +105,8 @@ module.exports = {
 
         const refreshTokenTTL = config.get('token.refreshTokenTTL');
         const refreshToken = new RefreshToken({
+            fcmToken: req.body.fcmToken,
+            lastSeen: new Date(),
             expAt: refreshTokenTTL? timeAfter(refreshTokenTTL) : null
         });
 
@@ -170,6 +176,22 @@ module.exports = {
 
     refreshToken: async(req, res) => {
         const user = await req.user();
+
+        const updateFilter = {
+            _id: user._id,
+            ['refreshTokens._id']: req.refreshTokenId
+        };
+        const updateObject = {
+            ['refreshTokens.$.fcmToken']: req.body.fcmToken,
+            ['refreshTokens.$.lastSeen']: new Date()
+        };
+
+        if (user.role === 'father' || user.role === 'mother') {
+            await User.update(updateFilter, updateObject);
+        } else {
+            await Child.update(updateFilter, updateObject);
+        }
+
         const tokens = await createRefreshResponse(req.body.refreshToken, req.RefreshTokenId, user);
         res.send({
             user: user.toJSON(),
@@ -266,5 +288,24 @@ module.exports = {
             $unset: {activationCodes: ''}
         }, {new: true});
         res.send(newUser.toJSON());
+    },
+
+    setFcmToken: async (req, res) => {
+        const user = await req.user();
+        const updateFilter = {
+            _id: user._id,
+            ['refreshTokens._id']: req.refreshTokenId
+        };
+        const updateObject = {
+            ['refreshTokens.$.fcmToken']: req.body.fcmToken,
+            ['refreshTokens.$.lastSeen']: new Date()
+        };
+
+        if (user.role === 'father' || user.role === 'mother') {
+            await User.update(updateFilter, updateObject);
+        } else {
+            await Child.update(updateFilter, updateObject);
+        }
+        res.send(user.toJSON());
     }
 }

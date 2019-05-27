@@ -15,5 +15,6 @@ router.get('/activationCode', auth.onlyPendings, AuthController.sendActivationCo
 router.post('/sendResetCode', request.sendResetCode, AuthController.sendResetCode);
 router.post('/checkResetCode', request.checkResetCode, AuthController.checkResetCode);
 router.post('/resetPassword', request.resetPassword, AuthController.resetPassword);
+router.post('/fcm', auth.evenBlocked, request.setFcmToken, AuthController.setFcmToken);
 
 module.exports = router;
