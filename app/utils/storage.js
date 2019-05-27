@@ -24,7 +24,7 @@ const createThumbnail = async(sourcePath, destPath) => {
     await callbackToPromise(fs.mkdir, false, thumbDir);
   }
   
-  return Promise.resolve();
+  return callbackToPromise(fs.copyFile, false, sourcePath, destPath);
 }
 
 const userStorage = {
@@ -105,8 +105,35 @@ const familyStorage = {
   }
 }
 
+const schoolStorage = {
+  storageOptions: getStorage('schools'),
+  
+  getFilePath: fileName => {
+    return path.join('imgs', 'schools', fileName);
+  },
+
+  getFileUrl: fileName => {
+    return (new URL(schoolStorage.getFilePath(fileName), appUrl)).toString();
+  },
+
+  getThumbPath: fileName => {
+    return path.join('imgs', 'schools', 'thumb', fileName);
+  },
+
+  getThumbUrl: fileName => {
+    return (new URL(schoolStorage.getThumbPath(fileName), appUrl)).toString();
+  },
+
+  createThumbnail: (fileName) => {
+    const filePath = schoolStorage.getFilePath(fileName);
+    const thumbPath = schoolStorage.getThumbPath(fileName);
+    return createThumbnail(filePath, thumbPath);
+  }
+}
+
 module.exports = {
   userStorage,
   childStorage,
-  familyStorage
+  familyStorage,
+  schoolStorage
 };
