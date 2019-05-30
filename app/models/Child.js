@@ -1,6 +1,7 @@
 const mongoose = require('../utils/database');
 const RefreshToken = require('./RefreshToken');
 const RegistrationToken = require('./RegistrationToken');
+const Family = require('./Family');
 const mongoosePaginate = require('mongoose-paginate-v2');
 const { childStorage } = require('../utils/storage');
 const DateOnlyType = require('mongoose-dateonly')(mongoose);
@@ -131,6 +132,8 @@ childSchema.methods.setSchool = async function (schoolId, fullName, task) {
       });
     }
 
+    const familyId = this.family._id? this.family._id : this.family;
+    const family = await Family.findById(familyId).exec();
     task.update('attendance', {
       school: new mongoose.Types.ObjectId(schoolId),
       child: new mongoose.Types.ObjectId(this._id)
@@ -139,9 +142,9 @@ childSchema.methods.setSchool = async function (schoolId, fullName, task) {
       school: new mongoose.Types.ObjectId(schoolId),
       child: new mongoose.Types.ObjectId(this._id),
       fullName,
-      parent1: this.parent1 && this.parent1._id? this.parent1._id : this.parent1,
-      parent2: this.parent2 && this.parent2._id? this.parent2._id : this.parent2,
-      family: this.family && this.family._id? this.family._id : this.family,
+      parent1: family.parent1,
+      parent2: family.parent2,
+      family: family._id,
       $unset: {isDeleted: ''}
     }).options({upsert: true, setDefaultsOnInsert: true});
   }
