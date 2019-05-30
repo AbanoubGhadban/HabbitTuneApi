@@ -9,10 +9,16 @@ const handler = async (err, req, res, next) => {
     if (err.isJoi === true && Array.isArray(err.details) && err.details.length > 0) {
 
         const originalErr = err.details[0];
+        const path = originalErr.path.join('.');
+        let type = originalErr.type;
+        if (path === 'phone' && type === 'string.regex.base') {
+            type = types.NOT_SAUDI_PHONE_NUMBER;
+        }
+
         const error = new ValidationError({
             message: originalErr.message,
-            type: originalErr.type,
-            path: originalErr.path.join('.'),
+            type: type,
+            path: path,
             value: originalErr.value,
             meta: originalErr.context
         });
