@@ -91,6 +91,10 @@ class DateOnly {
   equals(otherDate) {
     return this.valueOf() === (new DateOnly(otherDate)).valueOf();
   }
+
+  toLocalDate() {
+    return this.date.toLocaleDateString()
+  }
 }
 
 module.exports = DateOnly;
