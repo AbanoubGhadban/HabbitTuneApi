@@ -21,7 +21,7 @@
     "ksaOffset": -180,
 
     "token": {
-        "accessTokenTTL": 60000,
+        "accessTokenTTL": 120,
         "refreshTokenTTL": null 
     },
 
