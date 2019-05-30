@@ -44,6 +44,7 @@ const attendanceSchema = new mongoose.Schema({
     family: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Family',
+      index: true,
       required: true
     },
     attendance: {

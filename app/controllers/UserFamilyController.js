@@ -82,6 +82,9 @@ module.exports = {
         task.update('families', {_id: family._id}, {
             $set: {[parentField]: user._id}
         });
+        task.update('attendance', {family: family._id}, {
+            $set: {[parentField]: user._id}
+        });
         await task.run({useMongoose: true});
 
         user = await User.findById(userId).populate('families').exec();
@@ -102,6 +105,9 @@ module.exports = {
             $pull: {families: new mongoose.Types.ObjectId(familyId)}
         });
         task.update('families', {_id: mongoose.Types.ObjectId(familyId)}, {
+            $unset: {[parentField]: ""}
+        });
+        task.update('attendance', {family: mongoose.Types.ObjectId(familyId)}, {
             $unset: {[parentField]: ""}
         });
         await task.run({useMongoose: true});

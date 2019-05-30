@@ -165,6 +165,9 @@ module.exports = {
         task.update('families', {_id: family._id}, {
             $set: {[parentField]: user._id}
         });
+        task.update('attendance', {family: family._id}, {
+            $set: {[parentField]: user._id}
+        });
         await task.run({useMongoose: true});
 
         const newFamily = await Family.findById(familyId)
