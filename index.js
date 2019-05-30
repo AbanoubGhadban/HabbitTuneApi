@@ -8,6 +8,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const delay = require('./app/middleware/delay');
 const config = require('config');
+require('./app/utils/firebase');
 
 const errorMiddleware = require('./app/middleware/error');
 const errTransformer = require('./app/middleware/errorTransform');
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
 app.use('/imgs', express.static('imgs'));
+app.use('/sheets', express.static('sheets'));
 
 app.use('/auth', require('./app/routes/auth'));
 app.use('/families', require('./app/routes/families'));

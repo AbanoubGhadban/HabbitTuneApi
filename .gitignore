@@ -4,3 +4,5 @@
 .env
 *.key
 /imgs
+/sheets
+*/serviceAccountKey.json

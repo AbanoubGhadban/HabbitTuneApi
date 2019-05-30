@@ -1,10 +1,5 @@
 const Activity = require('../models/Activity');
 const ActivityHistory = require('../models/ActivityHistory');
-const {
-  getDayName,
-  getDateOnly
-} = require('../utils/dates');
-const mongoose = require('mongoose');
 const DateOnly = require('../utils/DateOnly');
 
 class StoreActivitiesHistory {

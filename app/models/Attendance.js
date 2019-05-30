@@ -28,6 +28,7 @@ const attendanceSchema = new mongoose.Schema({
     school: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'School',
+      index: true,
       required: true
     },
     parent1: {
