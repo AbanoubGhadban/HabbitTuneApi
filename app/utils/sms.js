@@ -1,6 +1,9 @@
 const Nexmo = require('nexmo');
+const {preparePhone} = require('./utils');
 
 const sendSms = async (content, phone) => {
+    phone = preparePhone(phone);
+    
     const nexmo = new Nexmo({
     apiKey: '0afc81ec',
     apiSecret: 'TPrrik9oiWZOlkOc'

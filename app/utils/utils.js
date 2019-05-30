@@ -8,6 +8,27 @@ const timeAfter = seconds => {
     return date;
 }
 
+const getPhoneRegex = () => {
+    return /^(009665|9665|\+9665|05|5)(5|0|3|6|4|9|1|8|7)([0-9]{7})$/;
+}
+
+const preparePhone = phone => {
+    if (typeof(phone) !== 'string') {
+        return phone;
+    }
+    
+    if (phone.startsWith('5')) {
+        return '966' + phone;
+    } else if (phone.startsWith('05')) {
+        return '966' + phone.substr(1);
+    } else if (phone.startsWith('+')) {
+        return phone.substr(1);
+    } else if (phone.startsWith('00')) {
+        return phone.substr('2');
+    }
+    return phone;
+}
+
 const isParent = user => (user.role === 'father' || user.role === 'mother');
 
 const parseInt = (value, defaultValue = 0, allowNegative = true) => {
@@ -100,5 +121,7 @@ module.exports = {
     sliceArray,
     getBetweenQuery,
     callbackToPromise,
-    arrIntersection
+    arrIntersection,
+    getPhoneRegex,
+    preparePhone
 }
