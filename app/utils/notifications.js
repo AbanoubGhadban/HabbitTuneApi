@@ -37,6 +37,9 @@ const sendAllNotifications = messages => {
   }
 
   console.log({fcmMessages})
+  if (fcmMessages.length === 0) {
+    return Promise.resolve();
+  }
   return messaging.sendAll(fcmMessages);
 }
 

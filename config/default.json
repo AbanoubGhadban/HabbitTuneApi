@@ -16,6 +16,21 @@
         "password": null
     },
 
+    "schools": {
+        "startDate": 20180920,
+        "endDate": 20190701,
+        "weeklyHolidays": ["friday", "saturday"],
+        "officialHolidays": [
+            20190107,
+            20190501,
+            20190428
+        ],
+        "optimalArrivalTime": {
+            "hour": 7,
+            "minute": 0
+        }
+    },
+
     "itemsPerPage": 10,
 
     "ksaOffset": -180,

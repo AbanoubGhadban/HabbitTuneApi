@@ -33,6 +33,22 @@ class DateOnly {
     this.date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
+  static fromNormalMonth(value) {
+    if (typeof(value) === 'number') {
+      if (!Number.isInteger(value)) {
+        throw new Error('Invalida Date');
+      }
+      value = value.toString();
+    }
+
+    if (typeof(value) !== 'string' || value.length < 8 || Number.isNaN(+value)) {
+      throw new Error('Invalida Date');
+    }
+
+    const date = new Date(+value.substr(0, 4), +value.substr(4, 2) - 1, +value.substr(6, 2));
+    return new DateOnly(date);
+  }
+
   static fromObjectId(objectId) {
     if (objectId instanceof mongoose.Types.ObjectId) {
       objectId = objectId.toString();
@@ -75,6 +91,17 @@ class DateOnly {
 
   getDayName() {
     return dayNames[this.date.getDay()];
+  }
+
+  toNormalMonthString() {
+    const strYear = this.date.getFullYear().toString().padStart(4, "0");
+    const strMonth = (this.date.getMonth() + 1).toString().padStart(2, "0");
+    const strDate = this.date.getDate().toString().padStart(2, "0");
+    return `${strYear}${strMonth}${strDate}`;
+  }
+
+  toNormalMonthInt() {
+    return +this.toNormalMonthString();
   }
 
   toString() {
