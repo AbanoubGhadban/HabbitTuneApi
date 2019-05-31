@@ -1,23 +1,11 @@
-const Child = require('../models/Child');
-const Family = require('../models/Family');
 const Attendance = require('../models/Attendance');
-const LoginCode = require('../models/LoginCode');
 const ValidationError = require('../errors/ValidationError');
 const NotFoundError = require('../errors/NotFoundError');
 const errors = require('../errors/types');
 const config = require('config');
-const {
-    getBetweenQuery,
-    parseInt
-} = require('../utils/utils');
 const mongoose = require('../utils/database');
-const Fawn = require('fawn');
 const DateOnly = require('../utils/DateOnly');
-
-const _ = require('lodash');
-const {timeAfter} = require('../utils/utils');
-const {generateCode} = require('../utils/codeGenerators');
-const {childStorage} = require('../utils/storage');
+const {getArrivalStatus} = require('../utils/schools');
 
 module.exports = {
     index: async(req, res) => {
@@ -122,8 +110,8 @@ module.exports = {
 
     store: async(req, res) => {
       const {childId, schoolId} = req.params;
-      const date = new DateOnly();
       const arriveTime = new Date();
+      const date = new DateOnly(date);
       req.params.date = date;
 
       const tmpAttendance = await Attendance.findOne({
@@ -151,7 +139,8 @@ module.exports = {
         school: new mongoose.Types.ObjectId(schoolId)
       }, {$push: {attendance: {
         date: date.valueOf(),
-        arriveTime
+        arriveTime,
+        arrivalStatus: getArrivalStatus(arriveTime)
       }}});
       await module.exports.show(req, res);
     },

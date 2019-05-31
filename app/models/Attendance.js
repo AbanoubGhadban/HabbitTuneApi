@@ -60,6 +60,11 @@ const attendanceSchema = new mongoose.Schema({
           required: true,
           index: true,
           default: () => new Date()
+        },
+        arrivalStatus: {
+          type: String,
+          enum: ['onTime', 'late', 'beforeTime'],
+          required: true
         }
       }],
       select: false
