@@ -13,6 +13,7 @@
 
     "nexmo": {
         "key": "HABBIT_TUNE_NEXMO_KEY",
-        "secret": "HABBIT_TUNE_NEXMO_SECRET"
+        "secret": "HABBIT_TUNE_NEXMO_SECRET",
+        "defaultPhone": "HABBIT_TUNE_DEFAULT_PHONE"
     }
 }

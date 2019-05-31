@@ -33,7 +33,8 @@
 
     "nexmo": {
         "key": "5e606361",
-        "secret": "eToLlTvYmpvIxQ6I"
+        "secret": "eToLlTvYmpvIxQ6I",
+        "defaultPhone": null
     },
 
     "itemsPerPage": 10,

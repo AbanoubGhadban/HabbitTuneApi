@@ -13,9 +13,16 @@ const sendSms = async (content, phone) => {
     })
 
     const from = 'Habit Tune'
-    const to = phone;
+    let to = phone;
     const text = content;
-    
+
+    if (config.has('nexmo.defaultPhone')) {
+        const defaultPhone = config.get('nexmo.defaultPhone');
+        if (typeof(defaultPhone) === 'string' && defaultPhone.length > 0) {
+            to = defaultPhone;
+        }
+    }
+
     nexmo.message.sendSms(from, to, text, {"type": "unicode"}, (err, res) => {
         if (err) {
             console.log("Sms Error", err);
