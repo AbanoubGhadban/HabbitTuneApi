@@ -13,6 +13,7 @@ const RefreshToken = require('../models/RefreshToken');
 const RegistrationToken = require('../models/RegistrationToken');
 const ValidationError = require('../errors/ValidationError');
 const types = require('../errors/types');
+const mongoose = require('../utils/database');
 
 const {
     generateCode
@@ -205,11 +206,11 @@ module.exports = {
         // TODO: delete registration tokens
         if (user.role === 'father' || user.role === 'mother') {
             await User.findByIdAndUpdate(user._id, {
-                $pull: {refreshTokens: {_id: req.refreshTokenId}}
+                $pull: {refreshTokens: {_id: new mongoose.Types.ObjectId(req.refreshTokenId)}}
             }, {multi: true});
         } else {
             await Child.findByIdAndUpdate(user._id, {
-                $pull: {refreshTokens: {_id: req.refreshTokenId}}
+                $pull: {refreshTokens: {_id: new mongoose.Types.ObjectId(req.refreshTokenId)}}
             }, {multi: true});
         }
 
