@@ -48,7 +48,8 @@ module.exports = {
 
     show: async(req, res) => {
         const userId = req.params.userId;
-        const user = await User.findById(userId).populate('families').exec();
+        const user = await User.findById(userId)
+        .populate('school').populate('families').exec();
 
         if (!user) {
             throw new NotFoundError('user', userId);
@@ -63,7 +64,8 @@ module.exports = {
 
     showByPhone: async(req, res) => {
         const {phone} = req.params;
-        const user = await User.findOne({phone}).populate('families').exec();
+        const user = await User.findOne({phone})
+        .populate('school').populate('families').exec();
 
         if (!user) {
             throw new NotFoundError('user', phone);
@@ -111,13 +113,14 @@ module.exports = {
         
         const newUser = await User.findByIdAndUpdate(userId, {
             $set: {...props}
-        }, { runValidators: true, context: 'query', new: true}).populate('families').exec();
+        }, { runValidators: true, context: 'query', new: true})
+        .populate('school').populate('families').exec();
         res.send(newUser.toJSON());
     },
 
     setProfilePicture: async(req, res) => {
         const {userId} = req.params;
-        const user = await User.findById(userId).exec();
+        const user = await User.findById(userId).populate('school').exec();
         if (req.file) {
             const fileName = req.file.filename;
             await userStorage.createThumbnail(fileName);
@@ -171,7 +174,7 @@ module.exports = {
 
         const newUser = await User.findByIdAndUpdate(userId, {
             $set: {name}
-        }, {new: true}).populate('families').exec();
+        }, {new: true}).populate('school').populate('families').exec();
 
         res.send(newUser.toJSON());
     },
@@ -190,7 +193,8 @@ module.exports = {
             $set: {
                 password: await bcrypt.hash(password, salt)
             }
-        }, {new: true}).populate('families').exec();
+        }, {new: true})
+        .populate('school').populate('families').exec();
 
         res.send(newUser.toJSON());
     },
@@ -256,7 +260,7 @@ module.exports = {
         const newUser = await User.findByIdAndUpdate({_id: userId}, {
             $set: {phone: codeObj.phone},
             $unset: {phoneCodes: ''}
-        }, {new: true});
+        }, {new: true}).populate('school');
         res.send(newUser.toJSON());
     }
 };

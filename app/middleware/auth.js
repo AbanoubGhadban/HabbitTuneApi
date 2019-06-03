@@ -23,7 +23,7 @@ const checkAuth = (groups, allowChildren) => {
         if (decoded.role === 'father' || decoded.role === 'mother') {
             // Add user object to request, so any function can access it
             // To get user, use req.user()
-            const user = await User.findById(decoded._id).exec();
+            const user = await User.findById(decoded._id).populate('school').exec();
             req.user = async () => user;
 
             req.userId = decoded._id;

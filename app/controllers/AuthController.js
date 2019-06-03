@@ -139,7 +139,7 @@ module.exports = {
         const newUser = await User.findByIdAndUpdate({_id: userId}, {
             $set: {group: 'normal'},
             $unset: {activationCodes: ''}
-        }, {new: true});
+        }, {new: true}).populate('school');
         res.send(newUser.toJSON());
     },
 
@@ -287,7 +287,7 @@ module.exports = {
                 password: await bcrypt.hash(password, salt)
             },
             $unset: {activationCodes: ''}
-        }, {new: true});
+        }, {new: true}).populate('school');
         res.send(newUser.toJSON());
     },
 
