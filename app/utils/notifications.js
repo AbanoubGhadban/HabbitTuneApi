@@ -40,7 +40,12 @@ const sendAllNotifications = messages => {
   if (fcmMessages.length === 0) {
     return Promise.resolve();
   }
-  return messaging.sendAll(fcmMessages);
+  return messaging.sendAll(fcmMessages)
+  .then(res => {
+    console.log("Notifications Sent", res);
+  }).catch(err => {
+    console.log("Notifications Failed", err);
+  });
 }
 
 module.exports = {
