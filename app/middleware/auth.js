@@ -66,7 +66,7 @@ const checkRefreshToken = async (req, res, next) => {
 
     // Check if client is parent or child
     if (isParent(decoded)) {
-        const user = await User.findById(decoded._id).exec();
+        const user = await User.findById(decoded._id).populate('school').exec();
         req.user = async () => user;
 
         const tmpUser = await User.findOne({

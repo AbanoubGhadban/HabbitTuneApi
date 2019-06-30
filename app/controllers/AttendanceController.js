@@ -111,7 +111,7 @@ module.exports = {
     store: async(req, res) => {
       const {childId, schoolId} = req.params;
       const arriveTime = new Date();
-      const date = new DateOnly(date);
+      const date = new DateOnly();
       req.params.date = date;
 
       const tmpAttendance = await Attendance.findOne({
