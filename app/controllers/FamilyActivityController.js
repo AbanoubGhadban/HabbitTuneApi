@@ -19,40 +19,30 @@ const mongoose = require('../utils/database');
 module.exports = {
   getProgress: async(req, res) => {
     const {familyId, fromDate, toDate} = req.params;
-    const family = await Family.findById(familyId).exec();
+    const family = await Family.findById(familyId).populate('children').exec();
 
-    const childrenCount = family.children.length;
-    const acheivedPoints = await DayActivity.aggregate([
-      { $unwind: "$activities" },
-      { $match: {
-        date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() },
-        family: new mongoose.Types.ObjectId(familyId)
-      }},
-      { $group: {
-        _id: "$activities.category",
-        totalPoints: { $sum: "$activities.points" }
-      }},
-      { $project: { _id: 0, category: "$_id", totalPoints: 1 } }
-    ]).exec();
+    const acheivedPoints = {sports: 0, health: 0, social: 0, bodybuilding: 0};
+    const maxPoints = {sports: 0, health: 0, social: 0, bodybuilding: 0};
 
-    let maxPoints = await ActivityHistory.aggregate([
-      { $unwind: "$points" },
-      { $match: { date: { $gte: fromDate.valueOf(), $lte: toDate.valueOf() } } },
-      { $group: {
-        _id: "$points.category",
-        totalPoints: { $sum: "$points.points" }
-      }},
-      { $project: {
-        _id: 0,
-        category: "$_id",
-        totalPoints: { $multiply: [ "$totalPoints", childrenCount ] }
-      }}
-    ]);
+    const promises = [];
+    for (const child of family.children) {
+      promises.push(child.getProgress(fromDate, toDate))
+    }
+    const results = await Promise.all(promises);
+
+    for (const result of results) {
+      for (const categoryPoints of result.acheivedPoints) {
+        acheivedPoints[categoryPoints.category] += categoryPoints.totalPoints;
+      }
+      for (const categoryPoints of result.maxPoints) {
+        maxPoints[categoryPoints.category] += categoryPoints.totalPoints;
+      }
+    }
 
     res.send({
       acheivedPoints: acheivedPoints,
       maxPoints,
-      family: familyId,
+      family: family.toJSON(),
       fromDate: fromDate.valueOf(),
       toDate: toDate.valueOf()
     });
