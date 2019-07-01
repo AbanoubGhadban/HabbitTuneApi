@@ -88,7 +88,6 @@ attendanceSchema.options.toJSON = {
 
           ret.id = ret._id;
           delete ret._id;
-          delete ret.isVerified;
           delete ret.isDeleted;
           delete ret.attendance;
           delete ret.__v;

@@ -27,6 +27,7 @@ module.exports = {
         { $group: {
           _id: '$_id',
           arriveTime: { $first: '$attendance.arriveTime' },
+          arrivalStatus: { $first: '$attendance.arrivalStatus' },
           child: { $first: '$child' },
           school: { $first: '$school' },
           fullName: { $first: '$fullName' }
@@ -35,6 +36,7 @@ module.exports = {
           _id: 0,
           id: '$_id',
           arriveTime: '$arriveTime',
+          arrivalStatus: '$arrivalStatus',
           fullName: '$fullName',
           child: '$child',
           school: '$school'
