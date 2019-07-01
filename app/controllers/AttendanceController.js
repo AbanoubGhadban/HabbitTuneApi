@@ -10,12 +10,16 @@ const {getArrivalStatus} = require('../utils/schools');
 module.exports = {
     index: async(req, res) => {
       const {schoolId, date} = req.params;
-      const {offset} = req.query;
+      const {offset, fullName} = req.query;
 
       const filter = {
         school: new mongoose.Types.ObjectId(schoolId),
         ['attendance.date']: +date
       };
+
+      if (typeof(fullName) === 'string' && fullName.trim().length > 0) {
+        filter.fullName = {$regex: `.*${fullName}.*`};
+      }
 
       const perPage = config.get('itemsPerPage');
       const results = await Attendance.aggregate([
@@ -29,6 +33,7 @@ module.exports = {
           arriveTime: { $first: '$attendance.arriveTime' },
           arrivalStatus: { $first: '$attendance.arrivalStatus' },
           child: { $first: '$child' },
+          family: { $first: '$family' },
           school: { $first: '$school' },
           fullName: { $first: '$fullName' }
         }},
@@ -39,6 +44,7 @@ module.exports = {
           arrivalStatus: '$arrivalStatus',
           fullName: '$fullName',
           child: '$child',
+          family: '$family',
           school: '$school'
         } }
       ]).exec();
