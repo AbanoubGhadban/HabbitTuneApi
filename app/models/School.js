@@ -11,7 +11,7 @@ const schoolSchema = new mongoose.Schema({
     },
     arriveTime: {
       type: Date,
-      required: true
+      required: false
     },
     photo: {
         type: String,

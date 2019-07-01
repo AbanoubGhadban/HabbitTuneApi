@@ -116,58 +116,42 @@ childSchema.methods.setSchool = async function (schoolId, fullName, task) {
   let runTask = !task;
   task = task? task : Fawn.Task();
 
-  if (!this.school || !this.school._id ||
-    (this.school._id.toString() !== schoolId)) {
+  task.update('child', {
+    _id: this._id
+  }, {
+    $unset: {school: ''}
+  });
 
-    if (this.school && this.school._id) {
-      task.update('attendance', {
-        school: this.school._id,
-        child: new mongoose.Types.ObjectId(this._id)
-      }, {
-        isVerified: false,
-        isDeleted: true,
-        parent1: null,
-        parent2: null,
-        family: null
-      });
-    }
+  task.update('attendance', {
+    child: new mongoose.Types.ObjectId(this._id),
+    $or: [{isVerified: true}, {isDeleted: false}, {isDeleted: null}]
+  }, {
+    isVerified: false,
+    isDeleted: true,
+    parent1: null,
+    parent2: null,
+    family: null
+  });
 
-    const familyId = this.family._id? this.family._id : this.family;
-    const family = await Family.findById(familyId).exec();
-    task.update('attendance', {
-      school: new mongoose.Types.ObjectId(schoolId),
-      child: new mongoose.Types.ObjectId(this._id)
-    }, {
-      isVerified: true,
-      school: new mongoose.Types.ObjectId(schoolId),
-      child: new mongoose.Types.ObjectId(this._id),
-      fullName,
-      parent1: family.parent1,
-      parent2: family.parent2,
-      family: family._id,
-      $unset: {isDeleted: ''}
-    }).options({upsert: true, setDefaultsOnInsert: true});
-  }
-
-  if (runTask) {
-    task.update('child', {
-      _id: this._id
-    }, {
-      school: {
-        _id: school._id,
-        name: school.name
-      },
-      fullName
-    });
-  } else {
-    this.school = {
-      _id: school._id,
-      name: school.name
-    };
-  }
+  const familyId = this.family._id? this.family._id : this.family;
+  const family = await Family.findById(familyId).exec();
+  task.update('attendance', {
+    school: new mongoose.Types.ObjectId(schoolId),
+    child: new mongoose.Types.ObjectId(this._id)
+  }, {
+    isVerified: false,
+    school: new mongoose.Types.ObjectId(schoolId),
+    child: new mongoose.Types.ObjectId(this._id),
+    fullName,
+    parent1: family.parent1,
+    parent2: family.parent2,
+    family: family._id,
+    $unset: {isDeleted: ''}
+  }).options({upsert: true, setDefaultsOnInsert: true});
 
   if (runTask) {
     await task.run({useMongoose: true});
+    this.school = null;
   }
 }
 
