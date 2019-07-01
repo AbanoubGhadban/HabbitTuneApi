@@ -4,8 +4,7 @@ const UserController = require('../controllers/UserController');
 const auth = require('../middleware/auth');
 const preparePhone = require('../middleware/preparePhone');
 const request = require('../requests/UserRequest');
-const {userStorage} = require('../utils/storage');
-const upload = require('multer')({storage: userStorage.storageOptions});
+const {usersStorage} = require('../middleware/imageUpload');
 
 router.get('/', UserController.index);
 router.get('/getInfo', auth.evenBlocked, UserController.showUserInfo);
@@ -18,7 +17,7 @@ router.put('/:userId/password', auth.normalOrAdmin, auth.sameUserId(), request.u
 router.put('/:userId/phone', auth.normalOrAdmin, auth.sameUserId(), request.updatePhone, UserController.updatePhone);
 router.post('/:userId/phoneCode', auth.normalOrAdmin, auth.sameUserId(), request.getPhoneCode, preparePhone(), UserController.getPhoneCode);
 
-router.put('/:userId/profile', upload.single('photo'), UserController.setProfilePicture);
+router.put('/:userId/profile', usersStorage, UserController.setProfilePicture);
 router.delete('/:userId', auth.normalOrAdmin, auth.sameUserId(), UserController.destroy);
 router.post('/:userId/logoutAll', auth.allUsers, auth.sameUserId(), UserController.logout);
 

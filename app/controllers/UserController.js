@@ -120,11 +120,11 @@ module.exports = {
 
     setProfilePicture: async(req, res) => {
         const {userId} = req.params;
+        const {photoPath} = req;
         const user = await User.findById(userId).populate('school').exec();
-        if (req.file) {
-            const fileName = req.file.filename;
-            await userStorage.createThumbnail(fileName);
-            user.photo = fileName;
+
+        if (photoPath) {
+            user.photo = photoPath;
             await user.save();
             res.send(user.toJSON());
         } else {

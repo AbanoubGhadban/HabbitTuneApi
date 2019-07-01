@@ -79,11 +79,11 @@ module.exports = {
 
     setProfilePicture: async(req, res) => {
         const {childId} = req.params;
+        const {photoPath} = req;
         const child = await Child.findById(childId).exec();
-        if (req.file) {
-            const fileName = req.file.filename;
-            await childStorage.createThumbnail(fileName);
-            child.photo = fileName;
+        
+        if (photoPath) {
+            child.photo = photoPath;
             await child.save();
             res.send(child.toJSON());
         } else {

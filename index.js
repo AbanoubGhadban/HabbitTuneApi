@@ -13,9 +13,11 @@ require('./app/utils/firebase');
 const errorMiddleware = require('./app/middleware/error');
 const errTransformer = require('./app/middleware/errorTransform');
 const mongoose = require('./app/utils/database');
+const {fileUpload} = require('./app/middleware/imageUpload');
 
 // app.use(delay(300));
 app.use(cors());
+app.use(fileUpload);
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
