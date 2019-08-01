@@ -29,6 +29,7 @@
     "morgan": "^1.9.1",
     "nexmo": "^2.4.1",
     "node-cron": "^2.0.3",
-    "node-excel-export": "^1.4.4"
+    "node-excel-export": "^1.4.4",
+    "winston": "^3.2.1"
   }
 }
