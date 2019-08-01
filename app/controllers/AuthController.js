@@ -67,8 +67,12 @@ module.exports = {
             throw AuthenticationError.invalidCredentials();
         }
 
-        if (req.query.adminLogin === 'true' && user.group !== 'admin') {
+        if (req.query.adminLogin === 'true' && user.group !== 'admin' && !user.school) {
             throw AuthenticationError.invalidCredentials();
+        }
+
+        if (user.group === 'blocked') {
+            throw AuthenticationError.userBlocked();
         }
 
         const refreshTokenTTL = config.get('token.refreshTokenTTL');

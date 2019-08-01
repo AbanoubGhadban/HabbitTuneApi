@@ -33,6 +33,10 @@ const checkAuth = (groups, allowChildren) => {
                 throw new ForbiddenError();
             }
 
+            if (user.group === 'blocked' && group.indexOf('blocked') < 0) {
+                throw ForbiddenError.userBlocked();
+            }
+
             const group = user.group;
             if (!groups.includes(group)) {
                 throw new ForbiddenError();
@@ -126,13 +130,15 @@ const parentInFamily = (allowAdmin = true, payload = 'params') => async (req, re
 
     const familyId = req[payload].familyId;
     const family = await Family.findById(familyId).exec();
-    if (!family.parent1.equals(user._id) && !family.parent2.equals(user._id)) {
-        throw new ForbiddenError(
-            errors.NOT_PARENT_IN_FAMILY,
-            'You are trying to modify other family'
-        );
+    if (family.parent1 && family.parent1.equals(user._id)) {
+        return next();
+    } else if (family.parent2 && family.parent2.equals(user._id)) {
+        return next();
     }
-    return next();
+    throw new ForbiddenError(
+        errors.NOT_PARENT_IN_FAMILY,
+        'You are trying to modify other family'
+    );
 }
 
 const parentOfChild = (allowAdmin = true, payload = 'params') => async (req, res, next) => {
@@ -142,17 +148,68 @@ const parentOfChild = (allowAdmin = true, payload = 'params') => async (req, res
     }
 
     const childId = req[payload].childId;
-    const family = Family.findOne({
+    const family = await Family.findOne({
         $and: [
             { $or: [ {parent1: user._id}, {parent2: user._id} ] },
             { children: childId }
         ]
-    });
+    }).exec();
     
     if (!family) {
         throw new ForbiddenError(
             errors.NOT_PARENT_OF_CHILD,
             'You are trying to access child not of you'
+        );
+    }
+    return next();
+}
+
+const childOrHisParent = (allowAdmin = true, payload = 'params') => async (req, res, next) => {
+    const user = await req.user();
+    if (allowAdmin && user.group === 'admin') {
+        return next();
+    }
+
+    const childId = req[payload].childId;
+    if (user.role === 'father' || user.role === 'mother') {
+        const family = await Family.findOne({
+            $and: [
+                { $or: [ {parent1: user._id}, {parent2: user._id} ] },
+                { children: childId }
+            ]
+        }).exec();
+        
+        if (!family) {
+            throw new ForbiddenError(
+                errors.NOT_PARENT_OF_CHILD,
+                'You are trying to access child not of you'
+            );
+        }
+    } else {
+        if (user._id.toString() !== childId) {
+            if (!family) {
+                throw new ForbiddenError(
+                    errors.NOT_SAME_CHILD,
+                    'You are trying to do action by the name of other child'
+                );
+            }
+        }
+    }
+    
+    return next();
+}
+
+const adminOfSchool = (allowAdmin = true, payload = 'params') => async (req, res, next) => {
+    const user = await req.user();
+    if (allowAdmin && user.group === 'admin') {
+        return next();
+    }
+    
+    const {schoolId} = req[payload];
+    if (!user.school || !user.school._id || user.school._id.toString() !== schoolId) {
+        throw new ForbiddenError(
+            errors.NOT_ADMIN_OF_SCHOOL,
+            'You are not admin of the school'
         );
     }
     return next();
@@ -172,5 +229,7 @@ module.exports = {
     checkRefreshToken,
     sameUserId,
     parentInFamily,
-    parentOfChild
+    parentOfChild,
+    childOrHisParent,
+    adminOfSchool
 }

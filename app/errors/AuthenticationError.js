@@ -38,6 +38,10 @@ class AuthenticationError extends ApiError {
         return new AuthenticationError("Invalid Credentials", types.INVALID_CREDENTIALS);
     }
 
+    static userBlocked() {
+        return new AuthenticationError("User Blocked", types.USER_BLOCKED);
+    }
+
     getResponse() {
         return {
             name: "AuthenticationError",
