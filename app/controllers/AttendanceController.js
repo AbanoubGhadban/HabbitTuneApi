@@ -91,6 +91,7 @@ module.exports = {
           arriveTime: { $first: '$attendance.arriveTime' },
           child: { $first: '$child' },
           school: { $first: '$school' },
+          arrivalStatus: { $first: '$attendance.arrivalStatus' },
           fullName: { $first: '$fullName' }
         }},
         { $project: { 
@@ -98,6 +99,7 @@ module.exports = {
           id: '$_id',
           arriveTime: '$arriveTime',
           fullName: '$fullName',
+          arrivalStatus: '$arrivalStatus',
           child: '$child',
           school: '$school'
         } }
