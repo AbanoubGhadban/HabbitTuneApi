@@ -33,6 +33,17 @@ class DateOnly {
     this.date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
+  /**
+   * 
+   * @returns {Date} 
+   */
+  static TimeAtKsaNow() {
+    const date = new Date();
+    const ksaOffset = config.get('ksaOffset');
+    date.setMinutes(date.getMinutes() + date.getTimezoneOffset() - ksaOffset);
+    return date;
+  }
+
   static fromNormalMonth(value) {
     if (typeof(value) === 'number') {
       if (!Number.isInteger(value)) {
