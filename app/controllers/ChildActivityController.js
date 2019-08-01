@@ -11,8 +11,9 @@ const mongoose = require('../utils/database');
 
 module.exports = {
   show: async(req, res) => {
-    const {date, childId} = req.params;
+    const {childId} = req.params;
     const child = await Child.findById(childId).exec();
+    const date = new DateOnly();
     
     const dayActivity = await DayActivity.findOne({
       child: childId,
@@ -44,8 +45,9 @@ module.exports = {
   },
 
   store: async(req, res) => {
-    const {date, childId} = req.params;
+    const {childId} = req.params;
     const child = await Child.findById(childId).exec();
+    const date = new DateOnly();
     const today = new DateOnly();
     if (!today.equals(date)) {
       //throw ValidationError.from('date', date, types.ACTIVITY_DATE_PASSED);
