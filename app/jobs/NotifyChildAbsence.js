@@ -41,10 +41,10 @@ class NotifyChildAbsence {
     const parents = await User.find({
       _id: {$in: parentsIds},
       ['refreshTokens.fcmToken']: {$exists: true},
-      ['refreshTokens.lastSeen']: {$gt: timeAfter(-172800)},
+      ['refreshTokens.lastSeen']: {$gt: timeAfter(-2592000)}, // Last Seen from 30 days or less
       refreshTokens: {$elemMatch: {
         fcmToken: {$exists: true},
-        lastSeen: {$gt: timeAfter(-172800)}
+        lastSeen: {$gt: timeAfter(-2592000)} // Last Seen from 30 days or less
       }}
     }).select({refreshTokens: 1, _id: 1}).exec();
 
@@ -71,6 +71,7 @@ class NotifyChildAbsence {
       }
     }
 
+    console.log("\n\n\n", {notifications}, "\n\n\n\n");
     const res = await sendAllNotifications(notifications);
   }
 }
