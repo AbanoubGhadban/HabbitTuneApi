@@ -15,10 +15,11 @@ for (const dir of dirs) {
 }
 
 const fileUpload = fupload({
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 25 * 1024 * 1024 },
   limitHandler: (req, res, next) => {
     next(ValidationError.from(
-      'photo', null, types.EXCEEDED_MAX_IMAGE_SIZE
+      'photo', null, types.EXCEEDED_MAX_IMAGE_SIZE, "",
+      {limitInMB: 25}
     ));
   }
 });
@@ -32,10 +33,10 @@ const imageUpload = directory => async(req, res, next) => {
   const fileName = crypto.pseudoRandomBytes(16).toString('hex');
   await Jimp.read(photo.data)
   .then(img => {
-    const aspectRatio = img.bitmap.width/img.bitmap.height;
-    if (aspectRatio > 2 || aspectRatio < .5) {
-      throw ValidationError.from('photo', null, types.INVALID_IMAGE_ASPECT_RATIO);
-    }
+    // const aspectRatio = img.bitmap.width/img.bitmap.height;
+    // if (aspectRatio > 2 || aspectRatio < .5) {
+    //   throw ValidationError.from('photo', null, types.INVALID_IMAGE_ASPECT_RATIO);
+    // }
 
     if (img.bitmap.width <= 1600 && img.bitmap.height <= 1600) {
       return img.write(`imgs/${directory}/${fileName}.jpg`);
